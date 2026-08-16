@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ruff_cache/
+
+# Node (Prettier, pulled in by checklist-yaml)
+node_modules/
+
+# pre-commit
+pre-commit.log
+
+# OS
+.DS_Store

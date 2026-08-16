@@ -1,0 +1,23 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "ignorePaths": [".secrets.baseline"],
+  "words": [
+    "cspell",
+    "dotenv",
+    "editmsg",
+    "editorconfig",
+    "gzip",
+    "markdownlint",
+    "myapp",
+    "pinatti",
+    "pycache",
+    "pyproject",
+    "pyyaml",
+    "ruff",
+    "shellcheck",
+    "shfmt",
+    "venv",
+    "yamllint"
+  ]
+}

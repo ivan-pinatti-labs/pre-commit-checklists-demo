@@ -1,0 +1,86 @@
+---
+# This demo consumes the pre-commit-checklists library the way a real
+# project does: one `repo:` entry pinned to a `rev:` tag, then a list of
+# hook ids, exactly like templates/pre-commit-config/recommended.yaml in
+# that library.
+#
+# The library is not published yet, so `repo:` below points at a local,
+# tagged clone instead of GitHub. The ONLY LINE THAT CHANGES once
+# ivan-pinatti/pre-commit-checklists is public is the `repo:` value on the
+# very next line: swap it for
+# `https://github.com/ivan-pinatti/pre-commit-checklists` and leave
+# `rev: v1.0.0` exactly as it is, since the local clone was tagged with the
+# same tag name the published repo will use for its first release. See
+# README.md, "Pointing this at the published library", for the same note.
+default_install_hook_types: [pre-commit, commit-msg]
+repos:
+  # <- change only the repo: value on the next line to publish
+  - repo: file:///home/ivan/wo/personal/pre-commit-checklists-local-clone
+    rev: v1.0.0
+    hooks:
+      # Large-file/merge-conflict/line-ending hygiene, safe on any repo.
+      - id: checklist-basic
+        stages: [pre-commit]
+
+      # Spell-checks every file cspell can read; tune words in .cspell.json.
+      - id: checklist-spell
+        stages: [pre-commit]
+
+      # Lints and link-checks Markdown. Exercised by README.md.
+      - id: checklist-markdown
+        types: [markdown]
+        stages: [pre-commit]
+
+      # Validates YAML syntax, lints with yamllint, formats with Prettier.
+      # Exercised by config.yaml.
+      - id: checklist-yaml
+        types: [yaml]
+        stages: [pre-commit]
+
+      # Validates TOML syntax. Exercised by pyproject.toml.
+      - id: checklist-toml
+        types: [toml]
+        stages: [pre-commit]
+
+      # Blocks committed private keys and known secret patterns. Requires
+      # .secrets.baseline at the repo root, generated below.
+      - id: checklist-security-credentials
+        stages: [pre-commit]
+
+      # Checks every tracked file respects .editorconfig.
+      - id: checklist-dev-editorconfig
+        stages: [pre-commit]
+
+      # check-executables-have-shebangs, check-shebang-scripts-are-executable,
+      # shellcheck --severity=error, shfmt --indent 2. Exercised by
+      # rotate-logs.sh.
+      - id: checklist-dev-shell
+        types: [shell]
+        stages: [pre-commit]
+
+      # check-ast, check-builtin-literals, debug-statements, ruff-check
+      # --fix, ruff-format, requirements-txt-fixer. Exercised by
+      # check_disk_usage.py and requirements.txt.
+      - id: checklist-dev-python
+        files: '(\.py$|(^|/)requirements\.txt$)'
+        stages: [pre-commit]
+
+      # Rejects branch names that skip the naming convention. No ticket
+      # prefix required by default.
+      - id: checklist-git-valid-branches
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+      # Rejects commit messages that are not Conventional Commits. Runs at
+      # the commit-msg git stage, not pre-commit, which is why
+      # default_install_hook_types above lists both stages.
+      - id: checklist-git-commit-msg
+        stages: [commit-msg]
+        files: ^\.git/COMMIT_EDITMSG$
+
+      # Blocks direct commits to main/master/develop/staging.
+      - id: checklist-git-protected-branches
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
