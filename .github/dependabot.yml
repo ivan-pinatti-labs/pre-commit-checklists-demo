@@ -1,0 +1,45 @@
+version: 2
+updates:
+  # Watches the rev: pin on pre-commit-checklists inside
+  # .pre-commit-config.yaml, the same way it would for any hook repo.
+  #
+  # NOTE: repo: on that entry currently points at a local file:// clone,
+  # because the library is not published yet (see README.md, "Pointing
+  # this at the published library"). Dependabot cannot resolve a file://
+  # transport, so this ecosystem entry finds nothing to bump and sits idle
+  # until that line is swapped for the real
+  # https://github.com/ivan-pinatti/pre-commit-checklists URL. No change to
+  # this file is needed when that happens: it already covers the file the
+  # pin lives in.
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "America/Toronto"
+    labels:
+      - dependencies
+      - pre-commit
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    open-pull-requests-limit: 5
+
+  # Covers requirements.txt (pyyaml). pyproject.toml carries no dependency
+  # list of its own, only project metadata and ruff config, so there is
+  # nothing else for this ecosystem to read in this directory.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: "America/Toronto"
+    labels:
+      - dependencies
+      - python
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    open-pull-requests-limit: 5

@@ -1,0 +1,29 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  // Dependabot handles the library's rev: pin in .pre-commit-config.yaml
+  // and the pyyaml pin in requirements.txt, see dependabot.yml. Renovate
+  // exists for exactly one gap that leaves: .tool-versions pins the
+  // pre-commit CLI itself via asdf, a file format neither of Dependabot's
+  // two ecosystems here reads. Renovate's built-in asdf manager already
+  // knows the pre-commit tool and watches .tool-versions by default, so no
+  // extra manager configuration is needed beyond extending
+  // config:recommended below.
+  extends: ["config:recommended"],
+
+  // config:recommended enables a standing "Dependency Dashboard" issue that
+  // never resolves on its own; PRs still open on the normal schedule below
+  // without it, this just drops the one consolidated overview issue.
+  dependencyDashboard: false,
+
+  timezone: "America/Toronto",
+  schedule: ["before 7am on Monday"],
+
+  labels: ["dependencies"],
+  commitMessagePrefix: "chore:",
+
+  // Keep PR volume manageable.
+  prConcurrentLimit: 5,
+  prHourlyLimit: 2,
+  automerge: false,
+}
