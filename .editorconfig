@@ -19,8 +19,16 @@ indent_size = 2
 max_line_length = 100
 
 [*.md]
+# indent_size explicitly unset (not just omitted: EditorConfig sections
+# cascade, so leaving this out would still inherit indent_size=2 from
+# [*] above). editorconfig-checker validates indentation as multiples of
+# indent_size whenever both keys resolve to a value, and ordered-list
+# continuation lines (e.g. under "1. ") naturally hang at 3 or 4 spaces,
+# not 2. Enforcing it here would make every ordered list in this repo's
+# own docs a violation, unrelated to the whitespace bugs this file
+# exists to catch. Mirrors the library's own root .editorconfig.
 indent_style = space
-indent_size = 2
+indent_size = unset
 max_line_length = 100
 trim_trailing_whitespace = false
 
