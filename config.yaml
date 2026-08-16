@@ -1,0 +1,11 @@
+---
+# Defaults for rotate-logs.sh and check_disk_usage.py. Both scripts accept
+# the same values as command line flags, which override what's here.
+
+log_dir: /var/log/myapp
+retention_days: 14
+disk_threshold_percent: 90
+
+compression:
+  format: gzip
+  level: 6
