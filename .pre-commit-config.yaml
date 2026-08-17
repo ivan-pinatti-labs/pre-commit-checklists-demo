@@ -78,3 +78,10 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
+
+      # hadolint-docker, run in a container, needs Docker or Podman on
+      # PATH. The hook's own types: [dockerfile] selector already scopes
+      # it, so no selector is added here, matching the library's hook
+      # catalogue. Exercised by Dockerfile.
+      - id: checklist-dev-docker
+        stages: [pre-commit]
