@@ -10,7 +10,7 @@
 ## What it does
 
 This repository is a tiny log rotation and disk usage utility wired up to
-twelve hook ids from
+thirteen hook ids from
 [pre-commit-checklists](https://github.com/ivan-pinatti/pre-commit-checklists),
 so a reader can see the library working end to end before adopting it: a
 real `repo:`/`rev:` pin, real fixture files that each hook id is meant to
@@ -31,6 +31,7 @@ verified.
 - pre-commit
 - Bash and Python, for the small sample utility
 - detect-secrets, for the credentials checklist
+- Docker or Podman, for the Dockerfile checklist (hadolint-docker)
 
 ## License
 

@@ -13,7 +13,7 @@ pinned to a `rev:` tag, and real hooks catching real problems.
 
 This is not the library itself, and not another copy of it. It is a tiny
 log rotation and disk usage utility, the kind of small script collection
-almost every project ends up with, wired up to twelve of the library's
+almost every project ends up with, wired up to thirteen of the library's
 hook ids.
 
 ## Support the Project
@@ -146,6 +146,7 @@ TRC-20 accepts TRX, USDT, and USDC. See the
 | [`config.yaml`](config.yaml) | `checklist-yaml` |
 | [`pyproject.toml`](pyproject.toml) | `checklist-toml` |
 | [`README.md`](README.md) (this file) | `checklist-markdown`, `checklist-spell` |
+| [`Dockerfile`](Dockerfile) | `checklist-dev-docker` |
 | `.secrets.baseline` | `checklist-security-credentials` |
 
 `.editorconfig`, `.yamllint.yml`, `.markdownlint.yaml`, and `.cspell.json`
@@ -156,15 +157,21 @@ the library's `templates/` directory.
 `checklist-git-protected-branches` aren't file-based; they run against your
 branch name and commit message instead, see below.
 
+`checklist-dev-docker` needs Docker or Podman on `PATH`, since it runs
+`hadolint-docker` in a container; every other hook id here needs nothing
+beyond `pre-commit` and `detect-secrets`.
+
 Not every hook id the library ships is wired up here. There's no
 `.env` file, no `.github/workflows/`, no `.tf`, `.js`, `.ts`, `.json`, or
-`.xml` or `Dockerfile` in this demo, so `checklist-dev-dotenv`,
+`.xml` file in this demo, so `checklist-dev-dotenv`,
 `checklist-github-actions`, `checklist-dev-terraform`,
 `checklist-dev-javascript`, `checklist-dev-typescript`, `checklist-json`,
-`checklist-xml`, and `checklist-dev-docker` are left out of
+and `checklist-xml` are left out of
 [`.pre-commit-config.yaml`](.pre-commit-config.yaml) rather than listed
-with nothing to check. See the library's [hook catalogue][catalogue] for
-those.
+with nothing to check. This utility reads its settings from
+[`config.yaml`](config.yaml), not a `.env` file, so there is no genuine
+`.env` file to wire `checklist-dev-dotenv` up to either. See the library's
+[hook catalogue][catalogue] for those.
 
 [catalogue]: https://github.com/ivan-pinatti/pre-commit-checklists/blob/main/docs/hook-catalogue.md
 
@@ -175,6 +182,11 @@ pip install pre-commit detect-secrets
 pre-commit install
 pre-commit run --all-files
 ```
+
+You'll also need Docker or Podman on `PATH` for `checklist-dev-docker`,
+which runs `hadolint-docker` in a container against
+[`Dockerfile`](Dockerfile). Every other hook id here needs nothing beyond
+`pre-commit` and `detect-secrets`.
 
 Try a commit too, since the commit-msg stage above only runs on a real
 `git commit`, not on `pre-commit run --all-files`:
@@ -191,7 +203,7 @@ straight at the published library on GitHub:
 
 ```yaml
 repo: https://github.com/ivan-pinatti/pre-commit-checklists
-rev: v1.0.0
+rev: v1.1.1
 ```
 
 This used to point at a local, tagged clone while the library was
@@ -200,15 +212,25 @@ the only line that changed once `ivan-pinatti/pre-commit-checklists` went
 public, since `rev: v1.0.0` already matched the tag the library used for
 its first release.
 
+The pin has since moved from `v1.0.0` to `v1.1.1`. `v1.1.0` switched
+`checklist-dev-dotenv` from a Python dotenv-linter to a Rust one that
+needs Docker or Podman, and set `require_serial: true` on every checklist
+hook id; neither change required editing this demo's
+[`.pre-commit-config.yaml`](.pre-commit-config.yaml), since this demo
+does not select `checklist-dev-dotenv` (see [What's here](#whats-here)).
+`v1.1.1` made no changes that reach any hook id this demo selects.
+
 ## What's verified
 
 Verified on this machine, against the real `https://github.com/...` URL
-and `rev: v1.0.0` tag, after clearing pre-commit's cache so the fetch came
+and `rev: v1.1.1` tag, after clearing pre-commit's cache so the fetch came
 from GitHub rather than a cached clone, with commands and exit codes
 recorded when this was last run:
 
 - `pre-commit run --all-files`: every hook above runs, fetched fresh from
-  GitHub.
+  GitHub, including `checklist-dev-docker` linting
+  [`Dockerfile`](Dockerfile) with `hadolint-docker`, which needs Docker or
+  Podman on `PATH`.
 - A real `git commit` through the installed hooks, covering both the
   `pre-commit` and `commit-msg` stages: a non-conventional message is
   rejected and never lands, a conventional one succeeds.

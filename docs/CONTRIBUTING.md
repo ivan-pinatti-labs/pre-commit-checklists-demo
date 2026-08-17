@@ -20,7 +20,8 @@ so all code changes happen through pull requests.
    [`detect-secrets`](https://github.com/Yelp/detect-secrets) if you don't
    have them yet, then run `pre-commit install` in your clone. `git clone`
    does not carry hooks over, so do this in every clone, including
-   throwaway ones.
+   throwaway ones. You'll also need Docker or Podman on `PATH` for the
+   Dockerfile checklist.
 3. Make your change. `pre-commit run --all-files` runs the same checklists
    this demo consumes from the library; see
    [`.pre-commit-config.yaml`](../.pre-commit-config.yaml) for exactly
