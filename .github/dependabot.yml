@@ -3,14 +3,9 @@ updates:
   # Watches the rev: pin on pre-commit-checklists inside
   # .pre-commit-config.yaml, the same way it would for any hook repo.
   #
-  # NOTE: repo: on that entry currently points at a local file:// clone,
-  # because the library is not published yet (see README.md, "Pointing
-  # this at the published library"). Dependabot cannot resolve a file://
-  # transport, so this ecosystem entry finds nothing to bump and sits idle
-  # until that line is swapped for the real
-  # https://github.com/ivan-pinatti/pre-commit-checklists URL. No change to
-  # this file is needed when that happens: it already covers the file the
-  # pin lives in.
+  # repo: on that entry is https://github.com/ivan-pinatti/pre-commit-checklists,
+  # a resolvable transport, so this ecosystem entry can see the pin and
+  # open a pull request when a newer tag is released.
   - package-ecosystem: "pre-commit"
     directory: "/"
     schedule:

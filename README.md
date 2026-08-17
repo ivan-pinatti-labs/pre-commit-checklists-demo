@@ -186,45 +186,34 @@ git commit --allow-empty -m "docs: try the commit-msg hook"   # accepted
 
 ## Pointing this at the published library
 
-`pre-commit-checklists` is not published yet, so
 [`.pre-commit-config.yaml`](.pre-commit-config.yaml)'s `repo:` line points
-at a local, tagged clone on the machine this demo was built on, instead of
-GitHub. The mechanism pre-commit uses to fetch either one is identical, a
-`git clone` of whatever `repo:` names, so the change needed once the
-library is public is exactly one line: the `repo:` value itself, from
-
-```yaml
-repo: file:///home/ivan/wo/personal/pre-commit-checklists-local-clone
-```
-
-to
+straight at the published library on GitHub:
 
 ```yaml
 repo: https://github.com/ivan-pinatti/pre-commit-checklists
+rev: v1.0.0
 ```
 
-`rev: v1.0.0` stays as it is: the local clone was tagged `v1.0.0` to match
-the library's planned first release tag, precisely so this is a one-line
-swap rather than a two-line one.
+This used to point at a local, tagged clone while the library was
+unpublished, and swapping the `repo:` value for the real GitHub URL was
+the only line that changed once `ivan-pinatti/pre-commit-checklists` went
+public, since `rev: v1.0.0` already matched the tag the library used for
+its first release.
 
-## What's verified, and what isn't yet
+## What's verified
 
-Verified on this machine, with commands and exit codes recorded when this
-demo was built:
+Verified on this machine, against the real `https://github.com/...` URL
+and `rev: v1.0.0` tag, after clearing pre-commit's cache so the fetch came
+from GitHub rather than a cached clone, with commands and exit codes
+recorded when this was last run:
 
-- `pre-commit run --all-files` against the local, tagged clone: every hook
-  above runs and passes.
-- A real `git commit` through the installed `commit-msg` hook: a
-  non-conventional message is rejected, a conventional one succeeds.
+- `pre-commit run --all-files`: every hook above runs, fetched fresh from
+  GitHub.
+- A real `git commit` through the installed hooks, covering both the
+  `pre-commit` and `commit-msg` stages: a non-conventional message is
+  rejected and never lands, a conventional one succeeds.
 - A deliberately planted fake secret was caught and blocked by
   `checklist-security-credentials` before being removed again.
-
-Not verified, because it can't be until the library has a real tag: the
-`https://github.com/...` + `rev: vX.Y.Z` path itself. The local-clone path
-above exercises the same pre-commit machinery, but not GitHub's actual
-hosting, auth, or archive-fetch behavior. Re-run `pre-commit run
---all-files` here after making the one-line swap once a release exists, and
-treat that as the real first test of the published path, not this one.
 
 ## Documentation
 
