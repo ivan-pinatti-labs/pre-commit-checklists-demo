@@ -256,8 +256,7 @@ recorded when this was last run:
 
 - `pre-commit run --all-files`: every hook above runs, fetched fresh from
   GitHub, including `checklist-dev-docker` linting
-  [`Dockerfile`](Dockerfile) with `hadolint-docker`, which needs Docker or
-  Podman on `PATH`.
+  [`Dockerfile`](Dockerfile).
 - A real `git commit` through the installed hooks, covering both the
   `pre-commit` and `commit-msg` stages: a non-conventional message is
   rejected and never lands, a conventional one succeeds.
