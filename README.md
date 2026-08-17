@@ -16,6 +16,33 @@ log rotation and disk usage utility, the kind of small script collection
 almost every project ends up with, wired up to thirteen of the library's
 hook ids.
 
+## This repository is not published yet
+
+If you are reading this on GitHub, it is published. If you cloned it some
+other way, it may not be yet, and `pre-commit run --all-files` will show
+`checklist-markdown`'s `markdown-link-check` hook failing on real 404s:
+this repository's own GitHub page, its issues, `LICENSE.md`, and its
+security advisories, linked from this file, [`NOTICE.md`](NOTICE.md),
+[`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md),
+[`docs/CODE_OF_CONDUCT.md`](docs/CODE_OF_CONDUCT.md), and
+[`docs/SECURITY.md`](docs/SECURITY.md). Those links point at
+`github.com/ivan-pinatti/pre-commit-checklists-demo`, which does not exist
+until this repository is published. They are not broken links; the page
+they point at is just not there yet, and they will resolve on their own
+once it is, with no change needed to any of these files.
+
+There is deliberately no ignore rule or link-check exclusion for them:
+`checklist-markdown` catching a genuinely dead link is correct behavior,
+and hiding these particular ones would hide a real dead link along with
+a temporary one. Committing a change to any file this paragraph links to
+will therefore fail `checklist-markdown`'s `markdown-link-check` hook on
+these specific links until this repository is published; skip it
+deliberately for such a commit (`SKIP=markdown-link-check git commit
+...`), the same way this repository did while writing this section.
+Delete this whole section, and stop skipping the hook, once this
+repository is published and a `pre-commit run --all-files` shows those
+links passing.
+
 ## Support the Project
 
 If you are using this code, forking it, or getting ideas from it, sponsorships
