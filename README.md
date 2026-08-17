@@ -184,9 +184,12 @@ the library's `templates/` directory.
 `checklist-git-protected-branches` aren't file-based; they run against your
 branch name and commit message instead, see below.
 
-`checklist-dev-docker` needs Docker or Podman on `PATH`, since it runs
-`hadolint-docker` in a container; every other hook id here needs nothing
-beyond `pre-commit` and `detect-secrets`.
+`checklist-dev-docker` needs Docker on `PATH`, since `hadolint-docker`
+runs in a container through pre-commit's own `docker_image` language
+support, which shells out to the `docker` binary specifically (Podman
+does not substitute here, unlike `checklist-dev-dotenv`'s local hook);
+every other hook id here needs nothing beyond `pre-commit` and
+`detect-secrets`.
 
 Not every hook id the library ships is wired up here. There's no
 `.env` file, no `.github/workflows/`, no `.tf`, `.js`, `.ts`, `.json`, or
@@ -210,10 +213,10 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-You'll also need Docker or Podman on `PATH` for `checklist-dev-docker`,
-which runs `hadolint-docker` in a container against
-[`Dockerfile`](Dockerfile). Every other hook id here needs nothing beyond
-`pre-commit` and `detect-secrets`.
+You'll also need Docker on `PATH` for `checklist-dev-docker`, which runs
+`hadolint-docker` in a container against [`Dockerfile`](Dockerfile).
+Every other hook id here needs nothing beyond `pre-commit` and
+`detect-secrets`.
 
 Try a commit too, since the commit-msg stage above only runs on a real
 `git commit`, not on `pre-commit run --all-files`:

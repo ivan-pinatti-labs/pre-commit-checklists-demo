@@ -79,9 +79,12 @@ repos:
         always_run: true
         stages: [pre-commit]
 
-      # hadolint-docker, run in a container, needs Docker or Podman on
-      # PATH. The hook's own types: [dockerfile] selector already scopes
-      # it, so no selector is added here, matching the library's hook
-      # catalogue. Exercised by Dockerfile.
+      # hadolint-docker, run in a container via pre-commit's own
+      # docker_image language support, needs Docker specifically (that
+      # support shells out to the literal `docker` binary, unlike
+      # checklist-dev-dotenv's local hook, which accepts Podman too). The
+      # hook's own types: [dockerfile] selector already scopes it, so no
+      # selector is added here, matching the library's hook catalogue.
+      # Exercised by Dockerfile.
       - id: checklist-dev-docker
         stages: [pre-commit]

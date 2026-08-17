@@ -31,7 +31,7 @@ verified.
 - pre-commit
 - Bash and Python, for the small sample utility
 - detect-secrets, for the credentials checklist
-- Docker or Podman, for the Dockerfile checklist (hadolint-docker)
+- Docker, for the Dockerfile checklist (hadolint-docker)
 
 ## License
 
