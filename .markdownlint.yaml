@@ -4,8 +4,12 @@
 # Automatically fix problems markdownlint-cli2 knows how to fix.
 fix: true
 
-# MD013: line-length. Relaxed to 100 to match .editorconfig, and turned
-# off inside code blocks and tables, where wrapping is usually wrong.
+# MD013: line-length. This is the one tool in this repo that enforces
+# Markdown line length; .editorconfig's [*.md] section deliberately sets
+# max_line_length = 0 and defers to this rule instead, since MD013 has
+# the exceptions that matter (code blocks, tables, an inline disable
+# comment for unwrappable tokens such as long URLs) and
+# editorconfig-checker has none of them.
 MD013:
   line_length: 100
   code_blocks: false

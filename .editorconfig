@@ -29,7 +29,15 @@ max_line_length = 100
 # exists to catch. Mirrors the library's own root .editorconfig.
 indent_style = space
 indent_size = unset
-max_line_length = 100
+# max_line_length is off here on purpose: markdownlint's MD013 already
+# enforces Markdown line length, and it has the exceptions that matter
+# (tables: false, code_blocks: false, an inline disable comment for
+# unwrappable tokens such as long URLs). editorconfig-checker has no
+# such escape hatch, so leaving both tools enforcing the same rule meant
+# the one without exceptions won. Mirrors the library's own root
+# .editorconfig. (off, not 0: editorconfig-checker reads a literal 0 as
+# "lines must be 0 characters long", not "unlimited".)
+max_line_length = off
 trim_trailing_whitespace = false
 
 [*.py]
