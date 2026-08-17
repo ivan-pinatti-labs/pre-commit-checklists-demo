@@ -4,18 +4,12 @@
 # hook ids, exactly like templates/pre-commit-config/recommended.yaml in
 # that library.
 #
-# The library is not published yet, so `repo:` below points at a local,
-# tagged clone instead of GitHub. The ONLY LINE THAT CHANGES once
-# ivan-pinatti/pre-commit-checklists is public is the `repo:` value on the
-# very next line: swap it for
-# `https://github.com/ivan-pinatti/pre-commit-checklists` and leave
-# `rev: v1.0.0` exactly as it is, since the local clone was tagged with the
-# same tag name the published repo will use for its first release. See
-# README.md, "Pointing this at the published library", for the same note.
+# ivan-pinatti/pre-commit-checklists is public, so `repo:` below points at
+# the real GitHub URL, pinned to its `v1.0.0` release tag. See README.md,
+# "Pointing this at the published library", for how this was verified.
 default_install_hook_types: [pre-commit, commit-msg]
 repos:
-  # <- change only the repo: value on the next line to publish
-  - repo: file:///home/ivan/wo/personal/pre-commit-checklists-local-clone
+  - repo: https://github.com/ivan-pinatti/pre-commit-checklists
     rev: v1.0.0
     hooks:
       # Large-file/merge-conflict/line-ending hygiene, safe on any repo.
