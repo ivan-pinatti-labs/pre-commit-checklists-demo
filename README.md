@@ -206,7 +206,7 @@ straight at the published library on GitHub:
 
 ```yaml
 repo: https://github.com/ivan-pinatti/pre-commit-checklists
-rev: v1.1.1
+rev: v2.1.1
 ```
 
 This used to point at a local, tagged clone while the library was
@@ -215,18 +215,29 @@ the only line that changed once `ivan-pinatti/pre-commit-checklists` went
 public, since `rev: v1.0.0` already matched the tag the library used for
 its first release.
 
-The pin has since moved from `v1.0.0` to `v1.1.1`. `v1.1.0` switched
+The pin has since moved from `v1.0.0` to `v2.1.1`. `v1.1.0` switched
 `checklist-dev-dotenv` from a Python dotenv-linter to a Rust one that
 needs Docker or Podman, and set `require_serial: true` on every checklist
 hook id; neither change required editing this demo's
 [`.pre-commit-config.yaml`](.pre-commit-config.yaml), since this demo
 does not select `checklist-dev-dotenv` (see [What's here](#whats-here)).
-`v1.1.1` made no changes that reach any hook id this demo selects.
+`v1.1.1`, `v1.1.2`, `v1.2.0`, and `v1.2.1` made no changes that reach any
+hook id this demo selects: those releases only touched scripts, docs, and
+tests. `v2.0.0` removed the `megalinter-full` hook entirely, a breaking
+change this demo never selected in the first place. `v2.0.1` and `v2.0.2`
+were test and doc only releases. `v2.1.0` added `zizmor` security audits
+to `checklist-github-actions`, another hook id this demo does not select.
+`v2.1.1` changed the library's own PR validation workflow template to
+stop committing and pushing auto fixes back to a pull request branch;
+[`.github/workflows/pull-request.yml`](.github/workflows/pull-request.yml)
+in this demo is a separate, independently maintained copy that already
+runs pre-commit as a plain gate with no push step, so nothing here
+needed to change for that either.
 
 ## What's verified
 
 Verified on this machine, against the real `https://github.com/...` URL
-and `rev: v1.1.1` tag, after clearing pre-commit's cache so the fetch came
+and `rev: v2.1.1` tag, after clearing pre-commit's cache so the fetch came
 from GitHub rather than a cached clone, with commands and exit codes
 recorded when this was last run:
 

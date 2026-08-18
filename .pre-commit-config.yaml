@@ -5,12 +5,12 @@
 # that library.
 #
 # ivan-pinatti/pre-commit-checklists is public, so `repo:` below points at
-# the real GitHub URL, pinned to its `v1.1.1` release tag. See README.md,
+# the real GitHub URL, pinned to its `v2.1.1` release tag. See README.md,
 # "Pointing this at the published library", for how this was verified.
 default_install_hook_types: [pre-commit, commit-msg]
 repos:
   - repo: https://github.com/ivan-pinatti/pre-commit-checklists
-    rev: v1.1.1
+    rev: v2.1.1
     hooks:
       # Large-file/merge-conflict/line-ending hygiene, safe on any repo.
       - id: checklist-basic
