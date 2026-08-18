@@ -23,6 +23,7 @@
     "shfmt",
     "unwrappable",
     "venv",
-    "yamllint"
+    "yamllint",
+    "zizmor"
   ]
 }
