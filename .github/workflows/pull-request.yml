@@ -1,0 +1,64 @@
+---
+name: PR Validation
+
+# This is templates/workflows/pull-request.yml from the pre-commit-checklists
+# library, adopted here as this demo's own CI: the first place that shipped
+# template has ever actually run. See README.md, "Pointing this at the
+# published library", for the rest of the adoption path this repository
+# follows.
+#
+# No personal access token is needed: checking out this repository's own PR
+# branch is everything the default GITHUB_TOKEN's read access is scoped for.
+# No other services are wired into this pipeline.
+
+"on":
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  pre-commit:
+    name: Pre-Commit Checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      # persist-credentials is set to false because nothing in this job
+      # pushes, so the checked out credential has no reason to survive
+      # past this step.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Cache pre-commit hook environments
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit|
+
+      # Pinned to match .tool-versions, so this job and a local
+      # `pre-commit install` always run the identical release.
+      - name: Install pre-commit
+        run: pip install "pre-commit==4.5.1"
+
+      # Every checklist wired into .pre-commit-config.yaml here needs only
+      # what the ubuntu-24.04 runner already ships (Docker for
+      # checklist-dev-docker's hadolint-docker hook; Python for the rest),
+      # so no extra toolchain setup step belongs in this job.
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure --color always
