@@ -2,7 +2,7 @@
 
 pre-commit-checklists-demo
 Copyright 2026 Ivan Pinatti
-<https://github.com/ivan-pinatti/pre-commit-checklists-demo>
+<https://github.com/ivan-pinatti-labs/pre-commit-checklists-demo>
 
 This product is licensed under the Apache License, Version 2.0. See
 [LICENSE.md](LICENSE.md) for the full terms.
@@ -10,7 +10,7 @@ This product is licensed under the Apache License, Version 2.0. See
 ## Scope
 
 This repository is a demo consumer of
-[pre-commit-checklists](https://github.com/ivan-pinatti/pre-commit-checklists):
+[pre-commit-checklists](https://github.com/ivan-pinatti-labs/pre-commit-checklists):
 [`.pre-commit-config.yaml`](.pre-commit-config.yaml) pins a `repo:` and
 `rev:` for that library the way any real consumer would. Nothing from the
 library, or from the upstream pre-commit hooks it wraps, is vendored or
