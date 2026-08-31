@@ -251,8 +251,9 @@ changes that reach any hook id this demo selects.
 
 ## What's verified
 
-Verified on this machine, against the real `https://github.com/...` URL
-and `rev: v2.2.4` tag, after clearing pre-commit's cache so the fetch came
+Verified on this machine, against the real
+`https://github.com/ivan-pinatti-labs/pre-commit-checklists` URL and
+`rev: v2.2.4` tag, after clearing pre-commit's cache so the fetch came
 from GitHub rather than a cached clone, with commands and exit codes
 recorded when this was last run:
 
