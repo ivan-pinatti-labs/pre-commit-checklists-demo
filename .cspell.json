@@ -3,7 +3,11 @@
   "language": "en",
   "ignorePaths": [".secrets.baseline"],
   "words": [
+    "backdoored",
+    "coderabbit",
+    "coderabbitai",
     "cspell",
+    "defence",
     "dotenv",
     "editmsg",
     "editorconfig",

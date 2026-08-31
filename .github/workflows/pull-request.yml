@@ -7,24 +7,55 @@ name: PR Validation
 # published library", for the rest of the adoption path this repository
 # follows.
 #
-# No personal access token is needed: checking out this repository's own PR
-# branch is everything the default GITHUB_TOKEN's read access is scoped for.
-# No other services are wired into this pipeline.
+# The pre-commit job below publishes the exact check context "Pre-commit"
+# (its name:, not its job id): docs/MERGE_PIPELINE.md's coderabbit-gate.yml,
+# bot-auto-merge.yml, and coderabbit-review-queue.yml all hardcode that
+# string as a required context to wait on. It was named "Pre-Commit Checks"
+# before this repository's merge pipeline was ported in from
+# ivan-pinatti-labs/rsync-crypt; renaming a required check's context after
+# branch protection already requires the old name breaks the very next pull
+# request until branch protection is updated to match, which is why that
+# update ships in the same change that renamed this job (see
+# docs/MERGE_PIPELINE.md, "The bootstrap gap this pipeline was ported
+# through").
+#
+# No personal access token is needed anywhere in this file: checking out
+# this repository's own PR branch, and building the Dockerfile standalone,
+# are everything the default GITHUB_TOKEN's read access is scoped for. No
+# other services are wired into this pipeline.
 
 "on":
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
+  # Required checks are evaluated against the merge queue's own temporary
+  # commit, not a pull request's head, once main's merge_group ruleset is in
+  # place (see docs/MERGE_PIPELINE.md). The pre-commit job below needs this
+  # trigger or the queue stalls forever waiting for a "Pre-commit" context
+  # that never gets republished on its commit. Docker Build runs again here
+  # too, same as rsync-crypt's copy of this file, even though it is not
+  # required: nothing about it is queue-specific enough to be worth gating
+  # out.
+  merge_group:
 
+# A new push supersedes whatever this workflow is still doing for the same
+# PR, so a rapid series of pushes doesn't leave several stale runs racing
+# each other. github.event.pull_request.number is unset on a merge_group
+# event, so that alone would put every merge-queue run into the same group
+# and let cancel-in-progress cancel a run the queue still needs; falling
+# back to merge_group.head_ref (unique per queue entry) and then github.ref
+# keeps each queue entry, and any other trigger shape, in its own group.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: >-
+    ${{ github.workflow }}-${{ github.event.pull_request.number ||
+    github.event.merge_group.head_ref || github.ref }}
   cancel-in-progress: true
 
 permissions: {}
 
 jobs:
   pre-commit:
-    name: Pre-Commit Checks
+    name: Pre-commit
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -62,3 +93,29 @@ jobs:
       # so no extra toolchain setup step belongs in this job.
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure --color always
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # Not a required check; see docs/MERGE_PIPELINE.md. checklist-dev-docker
+    # already lints Dockerfile with hadolint above, but linting does not
+    # prove the image actually builds (a bad COPY path or a broken RUN step
+    # passes hadolint cleanly), and this repository's whole point is
+    # exercising real files with real tools, so a standalone build is worth
+    # having even though nothing here depends on it. Kept non-required,
+    # unlike ivan-pinatti-labs/rsync-crypt's Docker Build job: that job also
+    # probes whether Docker Hub credentials survive a repository transfer,
+    # which does not apply here since this repository has never carried
+    # those secrets and has no reason to log in to pull a public
+    # python:3.12-slim base image.
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build the image
+        run: docker build --tag pre-commit-checklists-demo:ci .

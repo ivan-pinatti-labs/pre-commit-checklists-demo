@@ -1,18 +1,49 @@
+---
 version: 2
+
+# Dependabot handles the library's rev: pin in .pre-commit-config.yaml and
+# every uses: pin under .github/workflows/. Renovate handles .tool-versions,
+# the one pin surface neither Dependabot ecosystem below can parse; see
+# renovate.json5. The third ecosystem here, pip, predates this repository's
+# merge pipeline (docs/MERGE_PIPELINE.md) and is deliberately left outside
+# it; see that ecosystem's own comment below for why.
+#
+# Scheduled Wednesday 08:00 (pre-commit) and 08:30 (github-actions),
+# America/Toronto: this repository's assigned slot in
+# ivan-pinatti-labs/.github's docs/BOT_SCHEDULE.md. It shares Wednesday with
+# ivan-pinatti-labs/pre-commit-checklists (the library this repository
+# demonstrates) at a two hour offset rather than taking its own day,
+# deliberately: a library and its own consumer usually move together, and
+# keeping both land in one morning keeps that pairing visible. See
+# BOT_SCHEDULE.md for the full reasoning; it is not restated here.
 updates:
-  # Watches the rev: pin on pre-commit-checklists inside
-  # .pre-commit-config.yaml, the same way it would for any hook repo.
-  #
-  # repo: on that entry is https://github.com/ivan-pinatti/pre-commit-checklists,
-  # a resolvable transport, so this ecosystem entry can see the pin and
-  # open a pull request when a newer tag is released.
+  # Covers the rev: pin on pre-commit-checklists inside
+  # .pre-commit-config.yaml. Dependabot's pre-commit ecosystem only ever
+  # reads a file literally named .pre-commit-config.yaml, which is this
+  # repository's only pre-commit config, so nothing here needs to watch
+  # anywhere else.
   - package-ecosystem: "pre-commit"
     directory: "/"
     schedule:
       interval: weekly
-      day: monday
-      time: "06:00"
+      day: wednesday
+      time: "08:00"
       timezone: "America/Toronto"
+    # Seven days, matching Renovate's minimumReleaseAge in renovate.json5.
+    # Both bots carry the same floor deliberately: `Pin Only`
+    # (scripts/assert-pin-only-diff.py) proves a diff changed nothing but a
+    # version, but it cannot tell a good release from a backdoored one, and
+    # this ecosystem executes arbitrary code on a developer's machine, which
+    # is the larger attack surface here, not the smaller. Applies to version
+    # updates only, never to Dependabot security updates, the same carve-out
+    # as renovate.json5's vulnerabilityAlerts.minimumReleaseAge: null.
+    # default-days is the only key used: GitHub's semver-major/minor/patch-days
+    # keys apply only to an ecosystem list that includes neither pre-commit
+    # nor github-actions, so setting them here would be configuration that
+    # silently does nothing. See ivan-pinatti-labs/.github's
+    # docs/BOT_SCHEDULE.md, "Cooling windows".
+    cooldown:
+      default-days: 7
     labels:
       - dependencies
       - pre-commit
@@ -20,10 +51,57 @@ updates:
       prefix: "chore"
       include: "scope"
     open-pull-requests-limit: 5
+    groups:
+      pre-commit-hooks:
+        patterns:
+          - "*"
+
+  # Covers every uses: line under .github/workflows/, added alongside this
+  # repository's own merge pipeline (docs/MERGE_PIPELINE.md): before that,
+  # this repository had no workflow files for this ecosystem to watch at
+  # all. Pin actions to a full commit SHA with a trailing "# vX.Y.Z" comment
+  # (see the workflows in this directory for the pattern) so Dependabot can
+  # resolve a bump.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: wednesday
+      time: "08:30"
+      timezone: "America/Toronto"
+    # Same seven day cooldown as the pre-commit block above, and the same
+    # default-days-only reasoning; see its comment and
+    # docs/BOT_SCHEDULE.md's "Cooling windows". This ecosystem executes
+    # arbitrary code in CI holding a token, the other larger attack surface
+    # alongside pre-commit hooks.
+    cooldown:
+      default-days: 7
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   # Covers requirements.txt (pyyaml). pyproject.toml carries no dependency
   # list of its own, only project metadata and ruff config, so there is
   # nothing else for this ecosystem to read in this directory.
+  #
+  # Deliberately outside this repository's merge pipeline
+  # (docs/MERGE_PIPELINE.md): requirements.txt is not one of
+  # scripts/assert-pin-only-diff.py's allowed pin surfaces, so a bump here
+  # always fails `Pin Only`, which means bot-auto-merge.yml never approves
+  # it and it is always graded, and merged, like a human pull request. No
+  # cooldown is set here for the same reason cooldown is not the mechanism
+  # protecting this ecosystem: `minimumReleaseAge`-style aging matters for a
+  # surface that can merge unattended the moment a version bump lands, and
+  # this one cannot. See scripts/assert-pin-only-diff.py's own docstring for
+  # the full reasoning behind what is, and is not, on that allowed list.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:

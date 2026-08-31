@@ -4,10 +4,10 @@ This repository is a worked example of consuming the pre-commit-checklists
 library, not the library itself. For the conventions that apply to any
 change here (forking, installing pre-commit, Conventional Commits, opening
 a draft pull request), see the library's own
-[CONTRIBUTING.md](https://github.com/ivan-pinatti/pre-commit-checklists/blob/main/docs/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/ivan-pinatti-labs/pre-commit-checklists/blob/main/docs/CONTRIBUTING.md).
 
 Bugs and ideas specific to this demo: open an issue at
-[ivan-pinatti/pre-commit-checklists-demo](https://github.com/ivan-pinatti/pre-commit-checklists-demo/issues/new).
+[ivan-pinatti-labs/pre-commit-checklists-demo](https://github.com/ivan-pinatti-labs/pre-commit-checklists-demo/issues/new).
 
 ## What contributions here look like
 

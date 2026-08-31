@@ -4,13 +4,15 @@
 # hook ids, exactly like templates/pre-commit-config/recommended.yaml in
 # that library.
 #
-# ivan-pinatti/pre-commit-checklists is public, so `repo:` below points at
-# the real GitHub URL, pinned to its `v2.1.1` release tag. See README.md,
-# "Pointing this at the published library", for how this was verified.
+# ivan-pinatti-labs/pre-commit-checklists is public, so `repo:` below points
+# at the real GitHub URL, pinned to its `rev:` release tag. See README.md,
+# "Pointing this at the published library", for how this was verified, and
+# docs/MERGE_PIPELINE.md for how this repository's own pull requests are
+# gated now that it has a merge pipeline of its own.
 default_install_hook_types: [pre-commit, commit-msg]
 repos:
-  - repo: https://github.com/ivan-pinatti/pre-commit-checklists
-    rev: v2.1.1
+  - repo: https://github.com/ivan-pinatti-labs/pre-commit-checklists
+    rev: v2.2.3
     hooks:
       # Large-file/merge-conflict/line-ending hygiene, safe on any repo.
       - id: checklist-basic
@@ -26,7 +28,9 @@ repos:
         stages: [pre-commit]
 
       # Validates YAML syntax, lints with yamllint, formats with Prettier.
-      # Exercised by config.yaml.
+      # Exercised by config.yaml and, now that this repository ships real
+      # workflows, by .github/dependabot.yml and every file under
+      # .github/workflows/ as well.
       - id: checklist-yaml
         types: [yaml]
         stages: [pre-commit]
@@ -57,6 +61,17 @@ repos:
       # check_disk_usage.py and requirements.txt.
       - id: checklist-dev-python
         files: '(\.py$|(^|/)requirements\.txt$)'
+        stages: [pre-commit]
+
+      # actionlint-docker and zizmor, scoped to .github/. Added alongside
+      # this repository's own merge pipeline (docs/MERGE_PIPELINE.md):
+      # before that, this demo had no .github/workflows/ content at all, so
+      # this hook id had nothing to check and stayed off the list, exactly
+      # as README.md's "What's here" table used to say. It now has three
+      # real workflow files plus dependabot.yml and renovate.json5, all real
+      # surfaces this hook id is meant to catch problems in.
+      - id: checklist-github-actions
+        files: ^\.github/
         stages: [pre-commit]
 
       # Rejects branch names that skip the naming convention. No ticket
