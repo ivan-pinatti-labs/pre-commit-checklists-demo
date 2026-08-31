@@ -81,9 +81,7 @@ RELEASE = r"v?[0-9][0-9A-Za-z.+_-]*"
 # after the space has to be a real release, not merely non-blank:
 # `pre-commit main` would otherwise normalize identically to
 # `pre-commit 4.5.1`.
-TOOL_VERSION_LINE = re.compile(
-    r"^(?P<prefix>[A-Za-z0-9_.-]+[ \t]+)" + RELEASE + r"[ \t]*$"
-)
+TOOL_VERSION_LINE = re.compile(r"^(?P<prefix>[A-Za-z0-9_.-]+[ \t]+)" + RELEASE + r"[ \t]*$")
 
 # A pre-commit hook `rev:`. The prefix is captured and put back, so that a
 # pin changing shape rather than value still reads as a difference.
@@ -164,9 +162,7 @@ def parse(diff: str) -> tuple[dict[str, tuple[Counter, Counter]], list[str]]:
         # skipping it as a file header would drop it from the comparison,
         # which fails open.
         if not in_hunk:
-            if line.startswith(
-                ("new file ", "deleted file ", "old mode ", "new mode ")
-            ):
+            if line.startswith(("new file ", "deleted file ", "old mode ", "new mode ")):
                 structural.append(f"{path}: {line.strip()}")
             continue
 
@@ -203,9 +199,7 @@ def main() -> int:
 
     for path, (removed, added) in changes.items():
         if not removed and not added:
-            problems.append(
-                f"{path}: no readable changed lines, so nothing was checked"
-            )
+            problems.append(f"{path}: no readable changed lines, so nothing was checked")
 
     for path, (removed, added) in changes.items():
         # Counter subtraction drops non-positive counts, so each direction
@@ -213,9 +207,7 @@ def main() -> int:
         for line in removed - added:
             problems.append(f"{path}: removed a line that was not re-added: -{line}")
         for line in added - removed:
-            problems.append(
-                f"{path}: added a line that was not a version bump: +{line}"
-            )
+            problems.append(f"{path}: added a line that was not a version bump: +{line}")
 
     if problems:
         print("REFUSED: this diff changes more than dependency pins.")
