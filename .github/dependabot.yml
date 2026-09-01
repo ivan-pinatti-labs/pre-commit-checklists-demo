@@ -95,13 +95,27 @@ updates:
   # Deliberately outside this repository's merge pipeline
   # (docs/MERGE_PIPELINE.md): requirements.txt is not one of
   # scripts/assert-pin-only-diff.py's allowed pin surfaces, so a bump here
-  # always fails `Pin Only`, which means bot-auto-merge.yml never approves
-  # it and it is always graded, and merged, like a human pull request. No
-  # cooldown is set here for the same reason cooldown is not the mechanism
-  # protecting this ecosystem: `minimumReleaseAge`-style aging matters for a
-  # surface that can merge unattended the moment a version bump lands, and
-  # this one cannot. See scripts/assert-pin-only-diff.py's own docstring for
-  # the full reasoning behind what is, and is not, on that allowed list.
+  # always fails `Pin Only`, which means bot-auto-merge.yml never approves it
+  # and it is always graded, and merged, like a human pull request. See that
+  # script's own docstring for the reasoning behind what is, and is not, on
+  # the allowed list.
+  #
+  # That is about who merges it, not about whether age helps, and an earlier
+  # version of this comment conflated the two: it declined a cooldown here on
+  # the grounds that aging only matters for a surface that can merge
+  # unattended. It does not follow. A person approving `pyyaml 6.0.2` to
+  # `6.0.3` can no more tell a backdoored release from a good one than
+  # assert-pin-only-diff.py can, which is the argument that script makes about
+  # its own limits. Review catches intent in a diff; it does not catch a
+  # compromised upstream artifact. Age is what buys the time for a bad release
+  # to be spotted and pulled, and it does that whoever clicks merge.
+  #
+  # Seven days, matching the other two ecosystems above and every sibling
+  # repository. Note this is not the difference between a window and no
+  # window: since 2026-07-14 Dependabot applies a three day default to version
+  # updates in every ecosystem, so leaving this unset was silently taking
+  # three rather than none. Setting it makes the number this organization
+  # chose explicit instead of inherited.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -109,6 +123,8 @@ updates:
       day: monday
       time: "07:00"
       timezone: "America/Toronto"
+    cooldown:
+      default-days: 7
     labels:
       - dependencies
       - python
