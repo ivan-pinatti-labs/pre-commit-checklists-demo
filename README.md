@@ -210,7 +210,7 @@ straight at the published library on GitHub:
 
 ```yaml
 repo: https://github.com/ivan-pinatti-labs/pre-commit-checklists
-rev: v2.2.4
+rev: v2.2.5
 ```
 
 This used to point at a local, tagged clone while the library was
@@ -227,7 +227,7 @@ the personal account at the time. This repository's own merge pipeline
 (see [`docs/MERGE_PIPELINE.md`](docs/MERGE_PIPELINE.md)) was ported in as
 part of that same move.
 
-The pin has since moved from `v1.0.0` to `v2.2.4`. `v1.1.0` switched
+The pin has since moved from `v1.0.0` to `v2.2.5`. `v1.1.0` switched
 `checklist-dev-dotenv` from a Python dotenv-linter to a Rust one that
 needs Docker or Podman, and set `require_serial: true` on every checklist
 hook id; neither change required editing this demo's
@@ -247,13 +247,19 @@ stop committing and pushing auto fixes back to a pull request branch;
 in this demo is a separate, independently maintained copy that already
 runs pre-commit as a plain gate with no push step, so nothing here
 needed to change for that either. `v2.1.2` through `v2.2.4` made no
-changes that reach any hook id this demo selects.
+changes that reach any hook id this demo selects. `v2.2.5` fixed the
+branch-name regex in `check-branch-name.sh`, the script behind
+`checklist-git-valid-branches`, a hook id this demo does select: before
+the fix, a branch name containing `https-/` (how Dependabot encodes a
+`https://` hook-repository URL when it names a branch after one) was
+rejected outright. No branch used in this demo takes that shape, so the
+fix changed nothing observable here.
 
 ## What's verified
 
 Verified on this machine, against the real
 `https://github.com/ivan-pinatti-labs/pre-commit-checklists` URL and
-`rev: v2.2.4` tag, after clearing pre-commit's cache so the fetch came
+`rev: v2.2.5` tag, after clearing pre-commit's cache so the fetch came
 from GitHub rather than a cached clone, with commands and exit codes
 recorded when this was last run:
 
