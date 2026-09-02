@@ -8,14 +8,26 @@ version: 2
 # merge pipeline (docs/MERGE_PIPELINE.md) and is deliberately left outside
 # it; see that ecosystem's own comment below for why.
 #
-# Scheduled Wednesday 08:00 (pre-commit) and 08:30 (github-actions),
-# America/Toronto: this repository's assigned slot in
-# ivan-pinatti-labs/.github's docs/BOT_SCHEDULE.md. It shares Wednesday with
-# ivan-pinatti-labs/pre-commit-checklists (the library this repository
-# demonstrates) at a two hour offset rather than taking its own day,
-# deliberately: a library and its own consumer usually move together, and
-# keeping both land in one morning keeps that pairing visible. See
-# BOT_SCHEDULE.md for the full reasoning; it is not restated here.
+# Every ecosystem runs daily, matching Renovate. Note that Dependabot's
+# "daily" means weekdays only, not all seven days.
+#
+# Until 2026-09-02 these were Wednesday 08:00 and 08:30 with pip on Monday
+# 07:00, this repository's assigned slot in a per-repository table in
+# ivan-pinatti-labs/.github's docs/BOT_SCHEDULE.md, which spread repositories
+# so their bots would not open pull requests in the same hour and queue
+# behind each other for CodeRabbit's installation-wide review quota. The
+# premise was wrong in exactly the way renovate.json5 below already argued
+# for Renovate: a pin-only bump resolves `Review Verified` through the bot
+# lane with CodeRabbit never asked, and that is true of Dependabot's
+# pin-only bumps too. The table rationed a quota neither bot spent, while a
+# weekly slot stacked on the seven day cooldown and made the real floor 7 to
+# 14 days. See that repository's README.md, "Dependency policy".
+#
+# The pairing this repository used to keep visible, landing alongside
+# ivan-pinatti-labs/pre-commit-checklists (the library it demonstrates) in
+# one morning, is better served by both running daily: a bump that affects
+# the library and its consumer now reaches both within a day of each other
+# rather than within the same reserved morning once a week.
 updates:
   # Covers the rev: pin on pre-commit-checklists inside
   # .pre-commit-config.yaml. Dependabot's pre-commit ecosystem only ever
@@ -25,9 +37,8 @@ updates:
   - package-ecosystem: "pre-commit"
     directory: "/"
     schedule:
-      interval: weekly
-      day: wednesday
-      time: "08:00"
+      interval: daily
+      time: "06:00"
       timezone: "America/Toronto"
     # Seven days, matching Renovate's minimumReleaseAge in renovate.json5.
     # Both bots carry the same floor deliberately: `Pin Only`
@@ -41,7 +52,7 @@ updates:
     # keys apply only to an ecosystem list that includes neither pre-commit
     # nor github-actions, so setting them here would be configuration that
     # silently does nothing. See ivan-pinatti-labs/.github's
-    # docs/BOT_SCHEDULE.md, "Cooling windows".
+    # README.md, "Both bots wait seven days".
     cooldown:
       default-days: 7
     labels:
@@ -65,13 +76,12 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: weekly
-      day: wednesday
-      time: "08:30"
+      interval: daily
+      time: "06:00"
       timezone: "America/Toronto"
     # Same seven day cooldown as the pre-commit block above, and the same
     # default-days-only reasoning; see its comment and
-    # docs/BOT_SCHEDULE.md's "Cooling windows". This ecosystem executes
+    # README.md's "Both bots wait seven days". This ecosystem executes
     # arbitrary code in CI holding a token, the other larger attack surface
     # alongside pre-commit hooks.
     cooldown:
@@ -119,9 +129,8 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: weekly
-      day: monday
-      time: "07:00"
+      interval: daily
+      time: "06:00"
       timezone: "America/Toronto"
     cooldown:
       default-days: 7

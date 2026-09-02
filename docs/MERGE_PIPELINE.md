@@ -145,7 +145,7 @@ ecosystems in `.github/dependabot.yml`, are this repository's own copy of
 the actual defence against a release that is well formed and malicious:
 `Pin Only` can tell a line changed nothing but a version, but it cannot tell
 a good release from a backdoored one. See
-`ivan-pinatti-labs/.github`'s `docs/BOT_SCHEDULE.md`, "Cooling windows", for
+`ivan-pinatti-labs/.github`'s `README.md`, "Both bots wait seven days", for
 why both bots carry the same window and why only `default-days` is set.
 
 ## `Review Verified`, and the bug it exists to fix
