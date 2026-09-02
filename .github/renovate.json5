@@ -42,14 +42,14 @@
   // schedule's own period short enough that it cannot add more than a day on
   // top of that floor.
   //
-  // Not scoped to a day the way Dependabot is, and this does not collide
-  // with dependabot.yml's Wednesday slot in this repository: a Renovate
-  // pin-only bump resolves `Review Verified` through
-  // scripts/coderabbit-review-verdict.py's bot lane without CodeRabbit ever
-  // being asked, so it consumes no review quota. The day-spreading recorded
-  // in ivan-pinatti-labs/.github's docs/BOT_SCHEDULE.md is a Dependabot
-  // concern only; see that document's "Cooling windows" and "Renovate runs
-  // daily everywhere" sections for the full reasoning, not restated here.
+  // Daily, and so is Dependabot. A pin-only bump resolves `Review Verified`
+  // through scripts/coderabbit-review-verdict.py's bot lane without
+  // CodeRabbit ever being asked, so it consumes no review quota. That was
+  // written here as a Renovate property, but it belongs to the bot lane and
+  // applies to Dependabot's pin-only bumps identically, which is why the
+  // organization's per-repository day table was dropped on 2026-09-02 and
+  // dependabot.yml is daily too. See ivan-pinatti-labs/.github's README.md,
+  // "Dependency policy".
   schedule: ["before 7am"],
 
   labels: ["dependencies"],

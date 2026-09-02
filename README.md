@@ -1,9 +1,11 @@
 # pre-commit-checklists-demo
 
-![GitHub issues](https://img.shields.io/github/issues-raw/ivan-pinatti-labs/pre-commit-checklists-demo)
-![GitHub Sponsors](https://img.shields.io/github/sponsors/ivan-pinatti)
-![GitHub Repo stars](https://img.shields.io/github/stars/ivan-pinatti-labs/pre-commit-checklists-demo)
-![GitHub forks](https://img.shields.io/github/forks/ivan-pinatti-labs/pre-commit-checklists-demo)
+[![License](https://img.shields.io/github/license/ivan-pinatti-labs/pre-commit-checklists-demo?logo=Github&style=for-the-badge)](LICENSE.md)
+[![GitHub issues](https://img.shields.io/github/issues-raw/ivan-pinatti-labs/pre-commit-checklists-demo?logo=Github&style=for-the-badge)](https://github.com/ivan-pinatti-labs/pre-commit-checklists-demo/issues)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/ivan-pinatti?logo=Github&style=for-the-badge)](https://github.com/sponsors/ivan-pinatti)
+[![GitHub Repo stars](https://img.shields.io/github/stars/ivan-pinatti-labs/pre-commit-checklists-demo?logo=Github&style=for-the-badge)](https://github.com/ivan-pinatti-labs/pre-commit-checklists-demo)
+[![GitHub forks](https://img.shields.io/github/forks/ivan-pinatti-labs/pre-commit-checklists-demo?logo=Github&style=for-the-badge)](https://github.com/ivan-pinatti-labs/pre-commit-checklists-demo/forks)
+[![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/ivan-pinatti-labs/pre-commit-checklists-demo?utm_source=oss&utm_medium=github&utm_campaign=ivan-pinatti-labs%2Fpre-commit-checklists-demo&labelColor=171717&color=FF570A&label=CodeRabbit+Reviews&style=for-the-badge)](https://coderabbit.ai)
 
 A small, realistic project that consumes
 [pre-commit-checklists](https://github.com/ivan-pinatti-labs/pre-commit-checklists)
