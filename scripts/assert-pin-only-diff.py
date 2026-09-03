@@ -33,16 +33,25 @@ from a backdoored one. Renovate's minimumReleaseAge window in
 .github/renovate.json5 is the actual defence against that; see
 docs/MERGE_PIPELINE.md.
 
-This repository has a Dockerfile and a requirements.txt as well, unlike
-ivan-pinatti-labs/github-template, but neither is on ALLOWED_PATHS below.
-requirements.txt is Dependabot-maintained (see dependabot.yml's pip block)
-but deliberately excluded: a bump there always fails this assertion and is
-graded like a human pull request instead, which is the safe default for a
-surface this port's mandate never asked to fast-track, and pip installs
-execute arbitrary code same as the two ecosystems this file does cover. The
-Dockerfile's `FROM python:3.12-slim` pin is unmanaged by either bot at all
-(see renovate.json5's comment on `extends:`), so there is no bot-authored
-diff touching it to grade in the first place.
+`requirements.txt` is on ALLOWED_PATHS as of 2026-09-03, and it was not
+before. It was excluded on the grounds that pip installs execute arbitrary
+code, which is true, but the exclusion was standing in for a test gate this
+repository did not have: a bump there failed this assertion, fell through to
+the human review lane, and waited. #1, a pyyaml patch bump, sat that way from
+2026-08-17.
+
+What changed is that the gate now exists. `tests/test_check_disk_usage.py`
+runs as the required `Tests` context, and its
+`test_load_config_parses_the_shipped_config` reads the real `config.yaml`
+through `check_disk_usage.load_config`, the one place this project calls into
+yaml. So a pyyaml bump is exercised by the new pyyaml before it can merge,
+which is what makes fast-tracking the surface defensible rather than merely
+convenient. Confirmed the gate bites: with pyyaml uninstalled the suite fails
+at collection, and a parse returning the wrong mapping fails that test.
+
+The Dockerfile's `FROM python:3.12-slim` pin stays off the list, and for an
+unrelated reason: neither bot manages it (see renovate.json5's comment on
+`extends:`), so there is no bot-authored diff touching it to grade.
 """
 
 import re
@@ -54,11 +63,14 @@ from collections import Counter
 # `.pre-commit-config.yaml` (the pre-commit-checklists `rev:` pin), see
 # .github/dependabot.yml. Renovate manages `.tool-versions` (the asdf
 # manager: github-cli, pre-commit), see .github/renovate.json5. Dependabot's
-# third ecosystem here, pip, is deliberately not on this list; see the
+# third ecosystem, pip, covers requirements.txt and tests/requirements.txt;
+# both are here because the required `Tests` context exercises them, see the
 # module docstring above.
 ALLOWED_PATHS = (
     ".tool-versions",
     ".pre-commit-config.yaml",
+    "requirements.txt",
+    "tests/requirements.txt",
     ".github/workflows/",
 )
 
@@ -82,6 +94,26 @@ RELEASE = r"v?[0-9][0-9A-Za-z.+_-]*"
 # `pre-commit main` would otherwise normalize identically to
 # `pre-commit 4.5.1`.
 TOOL_VERSION_LINE = re.compile(r"^(?P<prefix>[A-Za-z0-9_.-]+[ \t]+)" + RELEASE + r"[ \t]*$")
+
+# A pip requirement, `<name>==<version>`, one per line. Matched whole-line and
+# only for a requirements file, the same way TOOL_VERSION_LINE is and for the
+# same reason: `==` is too ordinary a token to normalize anywhere else.
+#
+# `==` and nothing looser. Both requirements files in this repository pin
+# exactly (see tests/requirements.txt for why), so a bump that also changed
+# the operator, `pyyaml==6.0.2` becoming `pyyaml>=6.0.3`, is a change of
+# policy rather than of version and should read as structural and be refused.
+# The optional bracket group covers an extras pin like `requests[socks]==2.34.2`
+# without letting the name itself grow or shrink.
+#
+# The version still has to satisfy RELEASE, so `pyyaml==main` cannot normalize
+# the same as `pyyaml==6.0.3`, and a trailing environment marker or comment is
+# deliberately not matched: anything after the version is left as ordinary text
+# so a change to it is caught.
+REQUIREMENT_LINE = re.compile(
+    r"^(?P<prefix>[A-Za-z0-9][A-Za-z0-9._-]*"
+    r"(?:\[[A-Za-z0-9,._-]+\])?==)" + RELEASE + r"[ \t]*$"
+)
 
 # A pre-commit hook `rev:`. The prefix is captured and put back, so that a
 # pin changing shape rather than value still reads as a difference.
@@ -128,6 +160,8 @@ def normalize(line: str, path: str = "") -> str:
     """Reduce a line to everything about it that a version bump may not change."""
     if path.endswith(".tool-versions"):
         return TOOL_VERSION_LINE.sub(r"\g<prefix><version>", line)
+    if path.endswith("requirements.txt"):
+        return REQUIREMENT_LINE.sub(r"\g<prefix><version>", line)
     line = ACTION_SHA.sub(_normalize_action_pin, line)
     line = REV_PIN.sub(r"\g<prefix><version>", line)
     return line

@@ -24,11 +24,22 @@ job is not on the required list.
 | Context | What it actually proves | Who publishes it |
 | --- | --- | --- |
 | `Pre-commit` | The full pre-commit hook set passed over every file | `pull-request.yml`, as a job |
+| `Tests` | `pytest tests` passed, which is what exercises the pinned Python dependencies | `pull-request.yml`, as a job |
 | `Pin Only` | A dependency bot's diff changes nothing but a version in a pin position; `success` with a "not a dependency bot pull request" description on everything else | `coderabbit-gate.yml`, published directly onto the head SHA |
 | `Review Verified` | CodeRabbit's actual review outcome, not merely that it reported something | `coderabbit-gate.yml`, published directly onto the head SHA |
 
-`Pre-commit` is an ordinary workflow job: GitHub reports a job's own pass or
-fail as the check. The other two are commit statuses, written directly by a
+`Tests` exists so that `requirements.txt` can be a `Pin Only` surface. A
+pyyaml bump merges here without a person reading it, and that is only
+defensible because something runs the new pyyaml first:
+`tests/test_check_disk_usage.py`'s
+`test_load_config_parses_the_shipped_config` reads the real `config.yaml`
+through `check_disk_usage.load_config`, the one place this project calls into
+yaml. Before 2026-09-03 there was no such job, `requirements.txt` was
+excluded from `Pin Only` in its place, and a pyyaml patch bump (#1) waited
+for a human from 2026-08-17. The exclusion was standing in for this check.
+
+`Pre-commit` and `Tests` are ordinary workflow jobs: GitHub reports a job's
+own pass or fail as the check. The other two are commit statuses, written directly by a
 workflow step rather than read off a job's outcome, for the same reason as
 in rsync-crypt: a status a workflow chooses whether to write, and what to
 write, does not read as passed merely because it was skipped.

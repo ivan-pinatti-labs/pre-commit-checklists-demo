@@ -1,10 +1,13 @@
 {
   "version": "0.2",
   "language": "en",
-  "ignorePaths": [".secrets.baseline"],
+  "ignorePaths": [
+    ".secrets.baseline"
+  ],
   "words": [
     "argjson",
     "backdoored",
+    "capsys",
     "coderabbit",
     "coderabbitai",
     "cspell",
@@ -30,18 +33,21 @@
     "pipefail",
     "pycache",
     "pyproject",
+    "pytest",
     "pyyaml",
     "rollup",
     "ruff",
     "shellcheck",
     "shfmt",
     "subshell",
+    "testinfra",
     "tonumber",
     "tostring",
     "unreviewed",
     "unsanitised",
     "unwrappable",
     "venv",
+    "xdist",
     "yamllint",
     "zizmor"
   ]
