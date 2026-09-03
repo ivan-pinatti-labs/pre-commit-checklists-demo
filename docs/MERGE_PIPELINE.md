@@ -24,20 +24,28 @@ job is not on the required list.
 | Context | What it actually proves | Who publishes it |
 | --- | --- | --- |
 | `Pre-commit` | The full pre-commit hook set passed over every file | `pull-request.yml`, as a job |
+| `Tests` | `pytest tests` passed, which is what exercises the pinned Python dependencies | `pull-request.yml`, as a job |
 | `Pin Only` | A dependency bot's diff changes nothing but a version in a pin position; `success` with a "not a dependency bot pull request" description on everything else | `coderabbit-gate.yml`, published directly onto the head SHA |
 | `Review Verified` | CodeRabbit's actual review outcome, not merely that it reported something | `coderabbit-gate.yml`, published directly onto the head SHA |
 
-`Pre-commit` is an ordinary workflow job: GitHub reports a job's own pass or
-fail as the check. The other two are commit statuses, written directly by a
+`Tests` exists so that `requirements.txt` can be a `Pin Only` surface. A
+pyyaml bump merges here without a person reading it, and that is only
+defensible because something runs the new pyyaml first:
+`tests/test_check_disk_usage.py`'s
+`test_load_config_parses_the_shipped_config` reads the real `config.yaml`
+through `check_disk_usage.load_config`, the one place this project calls into
+yaml. Before 2026-09-03 there was no such job, `requirements.txt` was
+excluded from `Pin Only` in its place, and a pyyaml patch bump (#1) waited
+for a human from 2026-08-17. The exclusion was standing in for this check.
+
+`Pre-commit` and `Tests` are ordinary workflow jobs: GitHub reports a job's
+own pass or fail as the check. The other two are commit statuses, written directly by a
 workflow step rather than read off a job's outcome, for the same reason as
 in rsync-crypt: a status a workflow chooses whether to write, and what to
 write, does not read as passed merely because it was skipped.
 
-There is no `Tests` context: this repository has no test suite to run one
-against (see `check_disk_usage.py` and `rotate-logs.sh`; neither has
-accompanying tests, and none were invented to fill this slot). `Docker
-Build`, a job in `pull-request.yml`, builds the Dockerfile standalone and is
-deliberately not in this table: `checklist-dev-docker` already lints it with
+`Docker Build`, a job in `pull-request.yml`, builds the Dockerfile standalone
+and is deliberately not in this table: `checklist-dev-docker` already lints it with
 hadolint on every pull request, this job only additionally proves it
 actually builds, and nothing in this pipeline needs that proof to merge
 anything. Unlike rsync-crypt's `Docker Build`, it does not log in to Docker
@@ -112,8 +120,9 @@ unattended. For the ones that are pin only:
 
 1. **`Pin Only` is graded.** `scripts/assert-pin-only-diff.py` checks that
    every changed line differs from its counterpart in nothing but a
-   version, in a pin position, across three allowed pin surfaces
-   (`.tool-versions`, `.pre-commit-config.yaml`, `.github/workflows/`), and
+   version, in a pin position, across five allowed pin surfaces
+   (`.tool-versions`, `.pre-commit-config.yaml`, `.github/workflows/`,
+   `requirements.txt` and `tests/requirements.txt`), and
    `coderabbit-gate.yml` publishes its verdict as the `Pin Only` status. A
    number that is not a pin does not count as one.
 2. **The approval is supplied, conditionally.** `bot-auto-merge.yml` waits
@@ -124,11 +133,14 @@ unattended. For the ones that are pin only:
    `Review Verified`, is green and the approval is in place, the same as
    any other pull request.
 
-Dependabot's `pip` ecosystem, which watches `requirements.txt`, is
-deliberately not one of the three allowed pin surfaces above: every pip
-bump fails `Pin Only` and is graded exactly like a human pull request, on
-purpose. See `scripts/assert-pin-only-diff.py`'s own docstring, and
-`.github/dependabot.yml`'s comment on that ecosystem block, for the full
+Dependabot's `pip` ecosystem was deliberately excluded from those surfaces
+until 2026-09-03, so every pip bump failed `Pin Only` and was graded exactly
+like a human pull request. That exclusion was standing in for a test gate this
+repository did not have. Now that `Tests` exists and exercises the pinned
+dependencies, both requirements files are pin surfaces and a pip bump merges
+unattended like any other. See `scripts/assert-pin-only-diff.py`'s own
+docstring, and `.github/dependabot.yml`'s comment on that ecosystem block, for
+the full
 reasoning; it is not restated here. The Dockerfile's `FROM python:3.12-slim`
 pin is unmanaged by either bot at all (see `.github/renovate.json5`'s
 comment on `extends:`), so no bot pull request ever touches it in the first
@@ -140,8 +152,9 @@ review" the moment `Pin Only` reads `success`, and CodeRabbit is never asked
 for an opinion; see rsync-crypt's document, "What actually gets reviewed,
 and what does not," for the fuller reasoning, unchanged here. Renovate's
 `minimumReleaseAge: "7 days"` in `.github/renovate.json5`, and Dependabot's
-`cooldown.default-days: 7` on its `pre-commit` and `github-actions`
-ecosystems in `.github/dependabot.yml`, are this repository's own copy of
+`cooldown.default-days: 7` on every one of its ecosystems in
+`.github/dependabot.yml`, `pre-commit`, `github-actions` and both `pip`
+directories, are this repository's own copy of
 the actual defence against a release that is well formed and malicious:
 `Pin Only` can tell a line changed nothing but a version, but it cannot tell
 a good release from a backdoored one. See

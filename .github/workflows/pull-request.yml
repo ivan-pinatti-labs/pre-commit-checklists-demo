@@ -94,6 +94,40 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure --color always
 
+  tests:
+    name: Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # A required check, and the reason requirements.txt is allowed to be a
+    # `Pin Only` surface at all. A pyyaml bump merges here without a human
+    # reading it, which is only defensible because something runs the new
+    # pyyaml first: tests/test_check_disk_usage.py's
+    # test_load_config_parses_the_shipped_config reads the real config.yaml
+    # through check_disk_usage.load_config, the one place this project calls
+    # into yaml. Verified that the gate bites: with pyyaml uninstalled the
+    # suite fails at collection, and a parse that returns the wrong mapping
+    # fails that test.
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      # Both files: requirements.txt carries the runtime dependency the tests
+      # exercise, tests/requirements.txt carries pytest itself.
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r tests/requirements.txt
+
+      - name: Run tests
+        run: python -m pytest tests -q
+
   docker-build:
     name: Docker Build
     runs-on: ubuntu-24.04

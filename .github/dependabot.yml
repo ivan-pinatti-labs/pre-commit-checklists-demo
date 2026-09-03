@@ -126,8 +126,30 @@ updates:
   # updates in every ecosystem, so leaving this unset was silently taking
   # three rather than none. Setting it makes the number this organization
   # chose explicit instead of inherited.
+  # Two directories, because Dependabot's pip ecosystem reads one
+  # requirements file per entry. `/` is requirements.txt, the runtime
+  # dependency this project ships; `/tests` is tests/requirements.txt, pytest
+  # for the required `Tests` context. Both are `Pin Only` surfaces and both
+  # are pinned with `==`, which is what lets fetch-metadata compute an update
+  # type and bot-auto-merge.yml approve them unattended.
   - package-ecosystem: "pip"
     directory: "/"
+    schedule:
+      interval: daily
+      time: "06:00"
+      timezone: "America/Toronto"
+    cooldown:
+      default-days: 7
+    labels:
+      - dependencies
+      - python
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "pip"
+    directory: "/tests"
     schedule:
       interval: daily
       time: "06:00"
