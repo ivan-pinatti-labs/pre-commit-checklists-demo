@@ -70,9 +70,20 @@ def test_load_config_rejects_arbitrary_python_objects(tmp_path):
 # ---------------------------------------------------------------------------
 
 
-def test_usage_percent_is_a_percentage(tmp_path):
-    percent = check_disk_usage.usage_percent(tmp_path)
-    assert 0.0 <= percent <= 100.0
+def test_usage_percent_computes_used_over_total(monkeypatch, tmp_path):
+    """Exact arithmetic, not a range.
+
+    A range check passes for any wrong calculation that still lands between 0
+    and 100, which is most of them: used/free, free/total and total/used all
+    would. Pinning shutil.disk_usage makes the expected number exact.
+    """
+    monkeypatch.setattr(check_disk_usage.shutil, "disk_usage", lambda _: (1000, 250, 750))
+    assert check_disk_usage.usage_percent(tmp_path) == 25.0
+
+
+def test_usage_percent_reads_the_real_filesystem(tmp_path):
+    """The mocked test above never calls the real thing; this one does."""
+    assert 0.0 <= check_disk_usage.usage_percent(tmp_path) <= 100.0
 
 
 # ---------------------------------------------------------------------------
@@ -112,14 +123,34 @@ def test_main_returns_2_for_a_path_that_does_not_exist(tmp_path, capsys):
     assert "does not exist" in capsys.readouterr().err
 
 
-def test_main_returns_0_below_the_threshold(tmp_path, capsys):
-    code = check_disk_usage.main(["--path", str(tmp_path), "--threshold", "100"])
+def test_main_returns_0_below_the_threshold(monkeypatch, tmp_path, capsys):
+    """Pinned at 25% so the outcome does not depend on the host's disk.
+
+    This read the real filesystem against `--threshold 100` before, which is
+    only correct while usage is under 100%. On a full disk `percent >=
+    threshold` holds and the test fails for a reason that has nothing to do
+    with the code.
+    """
+    monkeypatch.setattr(check_disk_usage.shutil, "disk_usage", lambda _: (1000, 250, 750))
+    code = check_disk_usage.main(["--path", str(tmp_path), "--threshold", "90"])
     assert code == 0
-    assert "% used" in capsys.readouterr().out
+    assert "25.0% used" in capsys.readouterr().out
 
 
-def test_main_returns_1_at_or_above_the_threshold(tmp_path, capsys):
-    """Threshold 0 is always met, so this asserts the boundary is `>=`."""
-    code = check_disk_usage.main(["--path", str(tmp_path), "--threshold", "0"])
+def test_main_returns_1_above_the_threshold(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(check_disk_usage.shutil, "disk_usage", lambda _: (1000, 950, 50))
+    code = check_disk_usage.main(["--path", str(tmp_path), "--threshold", "90"])
+    assert code == 1
+    assert "at or above" in capsys.readouterr().err
+
+
+def test_main_treats_the_threshold_as_inclusive(monkeypatch, tmp_path, capsys):
+    """Exactly at the threshold warns, because the comparison is `>=`.
+
+    The old version of this test used `--threshold 0`, which is met by any
+    usage at all and so passed whether the boundary was `>` or `>=`.
+    """
+    monkeypatch.setattr(check_disk_usage.shutil, "disk_usage", lambda _: (1000, 900, 100))
+    code = check_disk_usage.main(["--path", str(tmp_path), "--threshold", "90"])
     assert code == 1
     assert "at or above" in capsys.readouterr().err
