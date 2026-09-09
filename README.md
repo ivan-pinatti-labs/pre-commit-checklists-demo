@@ -150,7 +150,7 @@ TRC-20 accepts TRX, USDT, and USDC. See the
 | [`README.md`](README.md) (this file) | `checklist-markdown`, `checklist-spell` |
 | [`Dockerfile`](Dockerfile) | `checklist-dev-docker` |
 | `.secrets.baseline` | `checklist-security-credentials` |
-| [`.github/workflows/`](.github/workflows/), [`.github/dependabot.yml`](.github/dependabot.yml), [`.github/renovate.json5`](.github/renovate.json5) | `checklist-github-actions` |
+| [`.github/workflows/`](.github/workflows/), [`.github/renovate.json5`](.github/renovate.json5) | `checklist-github-actions` |
 
 `.editorconfig`, `.yamllint.yml`, `.markdownlint.yaml`, and `.cspell.json`
 are the tool configs the hooks above need; each was copied straight from

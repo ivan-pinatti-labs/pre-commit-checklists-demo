@@ -9,8 +9,12 @@ every changed line differs from its counterpart in nothing but a version.
 
 Ported from ivan-pinatti-labs/rsync-crypt's script of the same name, itself
 ported from docker-torrent-box-with-vpn's script, which is the check that
-stands between "renovate[bot] or dependabot[bot] opened a pull request" and
-an unattended merge. It exists here for the same reason: approving a bot's
+stands between "renovate[bot] opened a pull request" and an unattended
+merge. `dependabot[bot]` stood in that same sentence until Dependabot's
+`.github/dependabot.yml` `updates:` config was deleted and every ecosystem
+it managed moved to Renovate's own native managers (see
+docs/MERGE_PIPELINE.md, "A dependency bot pull request"). It exists here
+for the same reason: approving a bot's
 pull request on the strength of its author means the bot identity holds
 write access to main, and a diff that is not actually pin-only is exactly
 the shape a compromised or misconfigured bot would take. A path allowlist
@@ -50,22 +54,32 @@ convenient. Confirmed the gate bites: with pyyaml uninstalled the suite fails
 at collection, and a parse returning the wrong mapping fails that test.
 
 The Dockerfile's `FROM python:3.12-slim` pin stays off the list, and for an
-unrelated reason: neither bot manages it (see renovate.json5's comment on
-`extends:`), so there is no bot-authored diff touching it to grade.
+unrelated reason: the bot does not manage it (see renovate.json5's comment
+on `extends:`), so there is no bot-authored diff touching it to grade.
+
+Renovate is the only dependency bot with write access to this repository as
+of 2026-09-08. `.github/dependabot.yml` used to also open pull requests
+against `.github/workflows/`, `.pre-commit-config.yaml` and both
+requirements files, on a separate set of ecosystems, until its `updates:`
+config was deleted and every one of those surfaces moved to Renovate's own
+native managers (see docs/MERGE_PIPELINE.md, "A dependency bot pull
+request"). Nothing below shrank when it left: Renovate's native managers
+write into the same files.
 """
 
 import re
 import sys
 from collections import Counter
 
-# The pin surfaces a dependency bot actually maintains in this repository.
-# Dependabot manages `.github/workflows/` (Action SHAs) and
-# `.pre-commit-config.yaml` (the pre-commit-checklists `rev:` pin), see
-# .github/dependabot.yml. Renovate manages `.tool-versions` (the asdf
-# manager: github-cli, pre-commit), see .github/renovate.json5. Dependabot's
-# third ecosystem, pip, covers requirements.txt and tests/requirements.txt;
-# both are here because the required `Tests` context exercises them, see the
-# module docstring above.
+# The pin surfaces the dependency bot actually maintains in this
+# repository, all through Renovate's own native managers (see
+# .github/renovate.json5's enabledManagers): the asdf manager watches
+# `.tool-versions` (github-cli, pre-commit); the pre-commit manager watches
+# `.pre-commit-config.yaml`'s `rev:` pin; the github-actions manager watches
+# every `uses:` pin under `.github/workflows/`; the pip_requirements manager
+# watches `requirements.txt` and `tests/requirements.txt`, both here because
+# the required `Tests` context exercises them, see the module docstring
+# above.
 ALLOWED_PATHS = (
     ".tool-versions",
     ".pre-commit-config.yaml",
@@ -126,8 +140,8 @@ REQUIREMENT_LINE = re.compile(
 REV_PIN = re.compile(r"(?P<prefix>\brev:[ \t]+)" + RELEASE)
 
 # A GitHub Actions pin, always a full 40 character commit SHA in this
-# repository (Dependabot updates it that way), optionally followed by a
-# trailing release comment (`# v7`, `# v7.0.1`), which Dependabot rewrites
+# repository (the dependency bot updates it that way), optionally followed
+# by a trailing release comment (`# v7`, `# v7.0.1`), which the bot rewrites
 # on the same bump whenever the tag it resolves the SHA from changes. Both
 # have to normalize together: normalizing only the SHA and leaving the
 # comment as ordinary text means an ordinary bump that also moves `# v7` to

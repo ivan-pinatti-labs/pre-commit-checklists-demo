@@ -1,11 +1,12 @@
 # Test-only dependencies, exact pins rather than `>=` floors.
 #
 # A floor resolves to whatever is newest on PyPI when the venv is built, which
-# puts Dependabot's seven day `cooldown` out of the loop entirely: the cooldown
-# governs when Dependabot proposes a change, not what pip installs. It also
-# leaves `fetch-metadata` unable to compute an update type, which is what
-# `bot-auto-merge.yml` grades a bot bump on, so a floor bump can never be
-# approved unattended. Same reasoning as
+# puts the seven day `minimumReleaseAge` in .github/renovate.json5 out of the
+# loop entirely: that window governs when Renovate proposes a change, not
+# what pip installs at build time. It also leaves scripts/assert-pin-only-diff.py's
+# REQUIREMENT_LINE unable to recognize the line as a pin at all (it matches
+# `==` only), so a floor bump would fail `Pin Only` and never reach the
+# unattended lane `bot-auto-merge.yml` grades on regardless. Same reasoning as
 # ivan-pinatti-labs/docker-torrent-box-with-vpn's tests/requirements.txt.
 #
 # The runtime dependency this project actually ships, pyyaml, stays in the

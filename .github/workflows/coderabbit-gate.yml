@@ -18,11 +18,11 @@ name: CodeRabbit Gate
 #                    script's docstring for the three lanes.
 #
 # Ported from ivan-pinatti-labs/rsync-crypt's workflow of the same name.
-# This repository has no `Tests` context and no required `Docker Build` job
-# (see pull-request.yml and docs/MERGE_PIPELINE.md: there is no test suite
-# here), so the resolve/grade split below and the two statuses it publishes
-# are unchanged from that repository, but every comment that referred to its
-# Tests job has been dropped rather than carried forward stale.
+# This repository does have a `Tests` context (added 2026-09-03, see
+# docs/MERGE_PIPELINE.md), so the resolve/grade split below and the two
+# statuses it publishes are unchanged from that repository; only `Docker
+# Build` is not required here (see pull-request.yml and
+# docs/MERGE_PIPELINE.md for why).
 #
 # Five triggers, and each one exists for a different failure mode of the
 # others:
@@ -396,7 +396,7 @@ jobs:
           set -euo pipefail
           is_bot=false
           case "$AUTHOR" in
-            "renovate[bot]" | "dependabot[bot]") is_bot=true ;;
+            "renovate[bot]") is_bot=true ;;
           esac
 
           if [ "$is_bot" = "true" ] && [ "$IS_FORK" = "false" ]; then
