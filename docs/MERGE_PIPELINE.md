@@ -114,9 +114,17 @@ workflow runs from events a `GITHUB_TOKEN` creates).
 
 ## A dependency bot pull request
 
-Dependabot (`.github/dependabot.yml`: `pre-commit`, `github-actions`, and
-`pip`) and Renovate (`.github/renovate.json5`: `asdf`) open pull requests
-unattended. For the ones that are pin only:
+Renovate (`.github/renovate.json5`: `asdf`, `pre-commit`, `github-actions`,
+`pip_requirements`) is the only dependency bot with write access to this
+repository, and it opens pull requests unattended. It was not always the
+only one: until 2026-09-08, Dependabot (`.github/dependabot.yml`) managed
+the `pre-commit`, `github-actions` and `pip` surfaces, and Renovate managed
+only `asdf`, the one format neither Dependabot ecosystem here could read.
+`.github/dependabot.yml` is gone now, deleted rather than left disabled,
+since this is a real consumer repository and not a template with a reason
+to keep a dormant copy around; every surface it used to own moved to
+Renovate's own native managers, which read the same files. For the ones
+that are pin only:
 
 1. **`Pin Only` is graded.** `scripts/assert-pin-only-diff.py` checks that
    every changed line differs from its counterpart in nothing but a
@@ -131,35 +139,39 @@ unattended. For the ones that are pin only:
    and waits for a person, same as a major bump does.
 3. **GitHub enqueues and merges it** once every required check, including
    `Review Verified`, is green and the approval is in place, the same as
-   any other pull request.
+   any other pull request. Renovate arms auto-merge itself
+   (`platformAutomerge`) when it opens a pull request eligible for step 2
+   above, which is what actually enqueues it; nothing in this pipeline
+   enqueues a pull request on Renovate's behalf.
 
-Dependabot's `pip` ecosystem was deliberately excluded from those surfaces
-until 2026-09-03, so every pip bump failed `Pin Only` and was graded exactly
-like a human pull request. That exclusion was standing in for a test gate this
-repository did not have. Now that `Tests` exists and exercises the pinned
-dependencies, both requirements files are pin surfaces and a pip bump merges
-unattended like any other. See `scripts/assert-pin-only-diff.py`'s own
-docstring, and `.github/dependabot.yml`'s comment on that ecosystem block, for
-the full
-reasoning; it is not restated here. The Dockerfile's `FROM python:3.12-slim`
-pin is unmanaged by either bot at all (see `.github/renovate.json5`'s
-comment on `extends:`), so no bot pull request ever touches it in the first
-place.
+This repository's pip surfaces, `requirements.txt` and
+`tests/requirements.txt`, were deliberately excluded from those five until
+2026-09-03, so every pip bump failed `Pin Only` and was graded exactly like
+a human pull request — under Dependabot, which managed pip at the time.
+That exclusion was standing in for a test gate this repository did not
+have. Now that `Tests` exists and exercises the pinned dependencies, both
+requirements files are pin surfaces and a pip bump merges unattended like
+any other, the same today under Renovate's `pip_requirements` manager as it
+did under Dependabot's `pip` ecosystem before it. See
+`scripts/assert-pin-only-diff.py`'s own docstring for the full reasoning; it
+is not restated here. The Dockerfile's `FROM python:3.12-slim` pin stays
+unmanaged (see `.github/renovate.json5`'s comment on `extends:`), so no bot
+pull request ever touches it in the first place.
 
 `scripts/coderabbit-review-verdict.py`'s bot lane resolves `Review Verified`
 straight to `success` with the description "pin-only diff, nothing to
 review" the moment `Pin Only` reads `success`, and CodeRabbit is never asked
 for an opinion; see rsync-crypt's document, "What actually gets reviewed,
 and what does not," for the fuller reasoning, unchanged here. Renovate's
-`minimumReleaseAge: "7 days"` in `.github/renovate.json5`, and Dependabot's
-`cooldown.default-days: 7` on every one of its ecosystems in
-`.github/dependabot.yml`, `pre-commit`, `github-actions` and both `pip`
-directories, are this repository's own copy of
-the actual defence against a release that is well formed and malicious:
-`Pin Only` can tell a line changed nothing but a version, but it cannot tell
-a good release from a backdoored one. See
-`ivan-pinatti-labs/.github`'s `README.md`, "Both bots wait seven days", for
-why both bots carry the same window and why only `default-days` is set.
+`minimumReleaseAge: "7 days"` in `.github/renovate.json5` is this
+repository's own copy of the actual defence against a release that is well
+formed and malicious: `Pin Only` can tell a line changed nothing but a
+version, but it cannot tell a good release from a backdoored one. Before
+2026-09-08 Dependabot carried the identical seven day window as its own
+`cooldown.default-days` on every one of its ecosystems, deliberately kept
+equal to Renovate's, so a bump waited the same length of time regardless of
+which bot proposed it; see `ivan-pinatti-labs/.github`'s `README.md`, "Both
+bots wait seven days", for that history.
 
 ## `Review Verified`, and the bug it exists to fix
 

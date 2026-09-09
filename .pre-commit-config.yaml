@@ -29,8 +29,11 @@ repos:
 
       # Validates YAML syntax, lints with yamllint, formats with Prettier.
       # Exercised by config.yaml and, now that this repository ships real
-      # workflows, by .github/dependabot.yml and every file under
-      # .github/workflows/ as well.
+      # workflows, by every file under .github/workflows/ as well.
+      # .github/renovate.json5 is JSON5, not YAML, so it is not one of this
+      # hook id's files; .github/dependabot.yml used to be, before it was
+      # deleted as part of this repository's migration to Renovate as the
+      # sole dependency bot (see docs/MERGE_PIPELINE.md).
       - id: checklist-yaml
         types: [yaml]
         stages: [pre-commit]
@@ -67,9 +70,9 @@ repos:
       # this repository's own merge pipeline (docs/MERGE_PIPELINE.md):
       # before that, this demo had no .github/workflows/ content at all, so
       # this hook id had nothing to check and stayed off the list, exactly
-      # as README.md's "What's here" table used to say. It now has three
-      # real workflow files plus dependabot.yml and renovate.json5, all real
-      # surfaces this hook id is meant to catch problems in.
+      # as README.md's "What's here" table used to say. It now has four
+      # real workflow files plus renovate.json5, all real surfaces this
+      # hook id is meant to catch problems in.
       - id: checklist-github-actions
         files: ^\.github/
         stages: [pre-commit]

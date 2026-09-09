@@ -1,25 +1,27 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
 
-  // Dependabot handles the pre-commit-checklists rev: pin in
+  // Renovate is the sole dependency update bot in this repository.
+  // .github/dependabot.yml is gone; Renovate's native managers now cover
+  // every pin surface it used to own: the pre-commit-checklists rev: pin in
   // .pre-commit-config.yaml, every uses: pin under .github/workflows/, and
-  // the pyyaml pin in requirements.txt; see dependabot.yml. Renovate exists
-  // for exactly one gap that leaves: .tool-versions pins github-cli and
-  // pre-commit via asdf, a file format neither Dependabot ecosystem here
-  // reads. Renovate's built-in asdf manager already knows both tools and
-  // watches .tool-versions by default, so no custom manager configuration
-  // is needed beyond enabledManagers below.
+  // the pyyaml/pytest pins in requirements.txt and tests/requirements.txt.
+  // Renovate already covered the one gap Dependabot could never reach on
+  // its own: .tool-versions pins github-cli and pre-commit via asdf, a file
+  // format none of Dependabot's ecosystems read. Renovate's built-in asdf
+  // manager already knows both tools and watches .tool-versions by
+  // default, so no custom manager configuration is needed beyond
+  // enabledManagers below.
   //
   // This repository also has a Dockerfile (`FROM python:3.12-slim`) that
-  // neither bot manages, on purpose: Dependabot has no docker ecosystem
-  // entry here and Renovate's dockerfile manager is not enabled below.
-  // Unlike rsync-crypt's ALPINE_VERSION, there is no annotated pin or
-  // custom regex manager anchoring this one, and it is this demo's fixture
-  // for checklist-dev-docker's hadolint-docker hook rather than a
-  // production base image with its own upgrade cadence. Wiring it up would
-  // mean re-deriving the same Pin Only / cooldown reasoning
-  // docs/MERGE_PIPELINE.md and dependabot.yml's pip block already spell out
-  // for requirements.txt, for a surface this demo does not need automated.
+  // stays deliberately unmanaged: Renovate's dockerfile manager is not
+  // enabled below. Unlike rsync-crypt's ALPINE_VERSION, there is no
+  // annotated pin or custom regex manager anchoring this one, and it is
+  // this demo's fixture for checklist-dev-docker's hadolint-docker hook
+  // rather than a production base image with its own upgrade cadence.
+  // Wiring it up would mean re-deriving the same Pin Only / cooldown
+  // reasoning docs/MERGE_PIPELINE.md already spells out for
+  // requirements.txt, for a surface this demo does not need automated.
   // Bumping the tag is a manual edit when there is a reason to.
   extends: ["config:recommended"],
 
@@ -42,15 +44,32 @@
   // schedule's own period short enough that it cannot add more than a day on
   // top of that floor.
   //
-  // Daily, and so is Dependabot. A pin-only bump resolves `Review Verified`
-  // through scripts/coderabbit-review-verdict.py's bot lane without
-  // CodeRabbit ever being asked, so it consumes no review quota. That was
-  // written here as a Renovate property, but it belongs to the bot lane and
-  // applies to Dependabot's pin-only bumps identically, which is why the
-  // organization's per-repository day table was dropped on 2026-09-02 and
-  // dependabot.yml is daily too. See ivan-pinatti-labs/.github's README.md,
-  // "Dependency policy".
+  // Daily. A pin-only bump resolves `Review Verified` through
+  // scripts/coderabbit-review-verdict.py's bot lane without CodeRabbit ever
+  // being asked, so it consumes no review quota, which is why the
+  // organization's per-repository day table was dropped on 2026-09-02 in
+  // favour of checking daily everywhere. See ivan-pinatti-labs/.github's
+  // README.md, "Dependency policy".
   schedule: ["before 7am"],
+
+  // config:recommended extends :ignoreModulesAndTests, whose ignorePaths
+  // include "**/tests/**" (meant for a vendored test fixture directory, not
+  // this repository's own test suite), and ignorePaths is evaluated once
+  // for the whole repository rather than per manager, so there is no way to
+  // un-ignore tests/requirements.txt for pip_requirements alone. Confirmed
+  // live with a dry-run=extract: with the inherited default left in place,
+  // pip_requirements read requirements.txt but never tests/requirements.txt,
+  // silently, the same gap this organization's own pilot migration on
+  // docker-torrent-box-with-vpn also carries unnoticed (confirmed the same
+  // way, against that repository's own checkout). ignorePaths is not
+  // mergeable, so setting it here replaces the inherited array rather than
+  // adding to it; the two entries kept are Renovate's own bare default
+  // (node_modules, bower_components), neither of which exists in this
+  // repository, kept anyway because there is no reason to drop them.
+  // Re-verified after this change: pip_requirements now reads both
+  // requirements.txt and tests/requirements.txt, with no other manager's
+  // matches gaining or losing a file.
+  ignorePaths: ["**/node_modules/**", "**/bower_components/**"],
 
   labels: ["dependencies"],
   commitMessagePrefix: "chore:",
@@ -65,13 +84,30 @@
   // person rather than merging on the strength of a default nobody chose.
   automerge: false,
 
-  // Dependabot owns pre-commit hook revs and github-actions pins;
-  // requirements.txt is also Dependabot's (the pip ecosystem in
-  // dependabot.yml), and the Dockerfile is deliberately unmanaged by either
-  // bot (see the comment on extends: above). Restricting to asdf here
-  // avoids Renovate opening a duplicate pull request for anything
-  // Dependabot, or nobody, already owns.
-  enabledManagers: ["asdf"],
+  // Four managers, matching the four real pin surfaces this repository has
+  // (see scripts/assert-pin-only-diff.py's own docstring for the same list
+  // from the grading side). The Dockerfile is deliberately unmanaged by
+  // any bot (see the comment on extends: above), so no dockerfile manager
+  // is enabled here even though config:recommended would otherwise turn it
+  // on: "asdf" watches .tool-versions (github-cli, pre-commit); "pre-commit"
+  // watches .pre-commit-config.yaml's rev: pin, enabled explicitly below
+  // since it ships disabled upstream; "github-actions" watches every
+  // uses: pin under .github/workflows/; "pip_requirements" watches
+  // requirements.txt and tests/requirements.txt.
+  enabledManagers: ["asdf", "pre-commit", "github-actions", "pip_requirements"],
+
+  // Off by default upstream ("not supported by the pre-commit maintainers
+  // or community" per the manager's own warning, a statement about where
+  // bug reports go rather than a reason to leave hook revisions unwatched).
+  // Confirmed live with a dry-run=extract against this repository: with
+  // "pre-commit" already sitting in enabledManagers above but this block
+  // absent, the manager extracted nothing at all from
+  // .pre-commit-config.yaml. enabledManagers only controls which managers
+  // are allowed to run; it does not flip an individually-disabled manager
+  // back on, and this is the fix.
+  "pre-commit": {
+    enabled: true,
+  },
 
   // A cooling window before an update is offered at all, mirroring
   // ivan-pinatti-labs/rsync-crypt's reasoning: `Pin Only` proves a diff
@@ -118,10 +154,10 @@
     // pin position, checked line by line, before the label alone can do
     // anything; see docs/MERGE_PIPELINE.md.
     //
-    // patch and minor only. Either asdf tool here (github-cli, pre-commit)
-    // could in principle offer a major, which is exactly the case that
-    // needs a person to check nothing else in this repository's tooling
-    // assumes the old major's behavior.
+    // patch and minor only, across every manager below. Any of them could in
+    // principle offer a major, which is exactly the case that needs a
+    // person to check nothing else in this repository's tooling assumes
+    // the old major's behavior.
     {
       matchUpdateTypes: ["patch", "minor"],
       automerge: true,
@@ -132,6 +168,60 @@
       groupName: "asdf tool versions",
       groupSlug: "asdf-tools",
       labels: ["dependencies", "tooling"],
+    },
+    // One pull request per ecosystem, matching the shape dependabot.yml
+    // used to give these two before it was deleted (groups: pre-commit-hooks
+    // / github-actions, both patterns: ["*"]). addLabels, not labels: labels
+    // replaces the top level labels array outright (confirmed against
+    // Renovate's own configuration-options documentation), and the point
+    // here is to add the ecosystem-specific label on top of `dependencies`
+    // every Renovate pull request already carries, matching what a grouped
+    // Dependabot pull request for either ecosystem used to carry
+    // (dependencies, pre-commit / dependencies, github-actions).
+    {
+      matchManagers: ["pre-commit"],
+      groupName: "pre-commit hooks",
+      groupSlug: "pre-commit-hooks",
+      addLabels: ["pre-commit"],
+    },
+    {
+      matchManagers: ["github-actions"],
+      groupName: "github-actions",
+      groupSlug: "github-actions",
+      addLabels: ["github-actions"],
+    },
+    // The github-actions manager extracts more than uses: pins by default:
+    // confirmed live with a dry-run=extract against this repository, it also
+    // proposes updates for pull-request.yml's runs-on: ubuntu-24.04
+    // (depType github-runner) and the python-version: "3.12" passed to
+    // actions/setup-python's with: (depType uses-with). Dependabot's
+    // github-actions ecosystem never watched either; it bumps uses: pins
+    // only. Disabled here so this migration hands Renovate exactly the
+    // scope Dependabot had, not a wider one nobody has reviewed the
+    // implications of. Nothing downstream would have merged one of these
+    // unattended regardless, since scripts/assert-pin-only-diff.py's
+    // REV_PIN and ACTION_SHA patterns do not match a runner OS or a with:
+    // input and Pin Only would have refused any such diff, but this rule
+    // stops the pull request from being opened at all rather than relying
+    // on that fallback for something that was never in scope.
+    {
+      matchManagers: ["github-actions"],
+      matchDepTypes: ["github-runner", "uses-with"],
+      enabled: false,
+    },
+    // pip_requirements reads both requirements.txt and tests/requirements.txt
+    // by its own default file match, with no directory scoping needed
+    // (confirmed with a dry-run=extract). Left ungrouped, unlike the two
+    // rules above: dependabot.yml never grouped its two pip ecosystem
+    // blocks either (no groups: key on either one), each ungrouped because
+    // there was exactly one dependency per file, so an ungrouped rule here
+    // is the same shape carried forward, not a behavior change. Only the
+    // label is added on top of the default one-pull-request-per-dependency
+    // shape, matching what either Dependabot pip block used to add
+    // (dependencies, python).
+    {
+      matchManagers: ["pip_requirements"],
+      addLabels: ["python"],
     },
   ],
 }
