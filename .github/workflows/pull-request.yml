@@ -94,6 +94,52 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure --color always
 
+  renovate-config:
+    name: Renovate Config
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # pull_request only, not merge_group: this job is not a required check
+    # (see docs/MERGE_PIPELINE.md's required check table), so there is
+    # nothing gained by paying for it again against the queue's temporary
+    # commit once a pull request already passed it once. No path filter
+    # either, the same call ivan-pinatti-labs/pre-commit-checklists made for
+    # its own copy of this job: this repository carries no path-filtering
+    # infrastructure anywhere else, and adding one just for this single,
+    # cheap, non-required job is not worth it. Running it on every pull
+    # request costs a few seconds of npx download; a pull request that did
+    # not touch renovate.json5 still validates the unchanged file and passes.
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          # This job downloads and runs Renovate through npx and never talks
+          # to git itself, so the checkout has no use for a persisted
+          # credential.
+          persist-credentials: false
+
+      - name: Validate renovate.json5
+        shell: bash
+        # No file argument on purpose: passing the path explicitly validates
+        # it as *global* config, a weaker check that misses repo-only
+        # problems. Run bare, the validator finds .github/renovate.json5
+        # itself.
+        #
+        # --strict is what gives this teeth. A config needing migration is
+        # only a WARN by default and the command still exits 0, so without it
+        # this job would pass on exactly the drift it exists to catch.
+        #
+        # Pinned to a specific Renovate release, the same reasoning as every
+        # other tool version pin in this repository: a floating tag can start
+        # failing, or stop catching something it used to, with no change on
+        # this repository's own side at all. Bump this pin by hand; Renovate
+        # has no ecosystem of its own that watches this string, and adding
+        # one is not worth it for a version this job only reads once.
+        run: npx --yes --package renovate@44.69.12 renovate-config-validator --strict
+
   tests:
     name: Tests
     runs-on: ubuntu-24.04

@@ -4,20 +4,25 @@
 
 What happens between opening a pull request against this repository and it
 landing on `main`. Ported from `ivan-pinatti-labs/rsync-crypt`'s document of
-the same name, trimmed to what this repository actually has: no app code and
-no test suite, so there is no `Tests` context, unlike that repository. Where
-the reasoning is identical it is only summarized, not restated; see
-rsync-crypt's `docs/MERGE_PIPELINE.md` for the fuller version this one was
-trimmed from, and `ivan-pinatti-labs/.github`'s `docs/MERGE_PIPELINE.md` for
-a smaller worked example of the same kind of trim, for a repository with no
-merge queue and no `Pin Only` at all. This repository sits closer to
-`ivan-pinatti-labs/github-template`: both have a merge queue and a
-dependency-bot fast lane despite having no test suite, so both carry
+the same name, trimmed to what this repository actually has: no build system
+and no integration suite standing up a whole stack, unlike that repository.
+It does carry its own `Tests` context (`pytest tests`), added 2026-09-03 once
+`requirements.txt` needed one to become a `Pin Only` surface; see "Every
+required status context" below. This paragraph used to say this repository
+had no test suite at all, which stopped being true the day that job was
+added and went uncorrected until now. Where the reasoning is identical to
+rsync-crypt's it is only summarized, not restated; see that repository's
+`docs/MERGE_PIPELINE.md` for the fuller version this one was trimmed from,
+and `ivan-pinatti-labs/.github`'s `docs/MERGE_PIPELINE.md` for a smaller
+worked example of the same kind of trim, for a repository with no merge
+queue and no `Pin Only` at all. This repository sits closer to
+`ivan-pinatti-labs/github-template` in having a merge queue and a
+dependency-bot fast lane with no build system of its own, so both carry
 `Pin Only` and `bot-auto-merge.yml`'s full owner-approval and bot-approval
-mechanics that `.github`'s copy does not need. Unlike that template, this
-repository does have a Dockerfile, so it also carries a non-required
-`Docker Build` job; see "Every required status context" below for why that
-job is not on the required list.
+mechanics that `.github`'s copy does not need; unlike that template, though,
+this repository does have both a `Tests` context and a Dockerfile, so it
+also carries a non-required `Docker Build` job; see "Every required status
+context" below for why `Tests` is required and `Docker Build` is not.
 
 ## Every required status context
 
