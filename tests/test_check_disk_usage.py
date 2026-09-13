@@ -104,11 +104,17 @@ def test_parse_args_falls_back_when_config_is_empty():
 
 
 def test_parse_args_command_line_beats_config():
+    # "/opt/logs" rather than "/tmp" on purpose. The path here is arbitrary,
+    # the test only checks that argv wins over the config file, and ruff's
+    # S108 flags a hardcoded "/tmp" literal even in an assertion that writes
+    # nothing. Picking a path that is not a temp directory keeps the rule at
+    # full strength instead of carrying a noqa that someone has to re-evaluate
+    # later.
     args = check_disk_usage.parse_args(
-        ["--path", "/tmp", "--threshold", "10"],
+        ["--path", "/opt/logs", "--threshold", "10"],
         {"log_dir": "/srv/data", "disk_threshold_percent": 75},
     )
-    assert args.path == Path("/tmp")
+    assert args.path == Path("/opt/logs")
     assert args.threshold == 10.0
 
 
