@@ -47,6 +47,8 @@
     "unsanitised",
     "unwrappable",
     "venv",
+    "worktree",
+    "worktrees",
     "xdist",
     "yamllint",
     "zizmor"

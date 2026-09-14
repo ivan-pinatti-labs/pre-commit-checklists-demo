@@ -220,7 +220,7 @@ gets CodeRabbit to look at a bot pull request whose `Pin Only` verdict
 failed, since CodeRabbit never reviews a bot's pull request on its own: a
 clean pin-only bump never reaches this nudge at all, because `Review
 Verified` already resolved to `success` with no CodeRabbit involvement (see
-"A dependency bot pull request" above). See rsync-crypt's `CLAUDE.md`,
+"A dependency bot pull request" above). See rsync-crypt's `AGENTS.md`,
 "CodeRabbit silently ignores `@coderabbitai review` from a bot account," for
 why that comment has to come from a human account, or from
 `CODERABBIT_NUDGE_TOKEN` rather than the default `GITHUB_TOKEN`, and for

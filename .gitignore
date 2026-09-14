@@ -13,3 +13,9 @@ pre-commit.log
 
 # OS
 .DS_Store
+
+# Personal AI agent files, never committed (see AGENTS.md)
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/agents/local/
+.claude/worktrees/
