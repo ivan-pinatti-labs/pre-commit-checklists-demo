@@ -93,8 +93,19 @@
   // watches .pre-commit-config.yaml's rev: pin, enabled explicitly below
   // since it ships disabled upstream; "github-actions" watches every
   // uses: pin under .github/workflows/; "pip_requirements" watches
-  // requirements.txt and tests/requirements.txt.
-  enabledManagers: ["asdf", "pre-commit", "github-actions", "pip_requirements"],
+  // requirements.txt and tests/requirements.txt; "custom.regex" watches the
+  // asdf plugin commits the development container pins in
+  // .devcontainer/asdf-plugins (see customManagers below). That last one is
+  // the surface scripts/assert-pin-only-diff.py deliberately does not grade
+  // as a pin: a plugin change is code, and `Pin Only` sending it to a person
+  // is the intended outcome.
+  enabledManagers: [
+    "asdf",
+    "pre-commit",
+    "github-actions",
+    "pip_requirements",
+    "custom.regex",
+  ],
 
   // Off by default upstream ("not supported by the pre-commit maintainers
   // or community" per the manager's own warning, a statement about where
@@ -169,6 +180,27 @@
       groupSlug: "asdf-tools",
       labels: ["dependencies", "tooling"],
     },
+    // An asdf plugin is code: `asdf install` runs its scripts to download and
+    // install each tool, inside a development container that holds a GitHub
+    // token. A new plugin commit therefore waits for a person to read what
+    // changed in that plugin, and never merges on its own. It is a digest
+    // update, which the automerge rule above never matches either.
+    //
+    // git-refs publishes no release timestamps, and under Renovate's default
+    // minimumReleaseAgeBehaviour (timestamp-required) the 7 day window above
+    // would then hold every plugin commit back forever, silently.
+    // timestamp-optional lets the update be offered; the review stands in for
+    // the age window here.
+    {
+      matchManagers: ["custom.regex"],
+      matchDatasources: ["git-refs"],
+      matchFileNames: [".devcontainer/asdf-plugins"],
+      groupName: "asdf plugins",
+      groupSlug: "asdf-plugins",
+      addLabels: ["tooling"],
+      minimumReleaseAgeBehaviour: "timestamp-optional",
+      automerge: false,
+    },
     // One pull request per ecosystem, matching the shape dependabot.yml
     // used to give these two before it was deleted (groups: pre-commit-hooks
     // / github-actions, both patterns: ["*"]). addLabels, not labels: labels
@@ -222,6 +254,22 @@
     {
       matchManagers: ["pip_requirements"],
       addLabels: ["python"],
+    },
+  ],
+
+  // The asdf plugin commits the development container pins in
+  // .devcontainer/asdf-plugins, one line per plugin: name, repository URL,
+  // branch, commit. git-refs reads the named branch's current commit, so a
+  // new commit there arrives as a digest update to that line. See the
+  // matching packageRules entry above for why a person reviews every one.
+  customManagers: [
+    {
+      customType: "regex",
+      managerFilePatterns: ["/^\\.devcontainer/asdf-plugins$/"],
+      matchStrings: [
+        "(?<depName>[a-z0-9-]+) (?<packageName>https://\\S+) (?<currentValue>\\S+) (?<currentDigest>[0-9a-f]{40})",
+      ],
+      datasourceTemplate: "git-refs",
     },
   ],
 }
