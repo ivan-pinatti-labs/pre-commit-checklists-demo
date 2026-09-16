@@ -13,16 +13,20 @@
   // default, so no custom manager configuration is needed beyond
   // enabledManagers below.
   //
-  // This repository also has a Dockerfile (`FROM python:3.12-slim`) that
-  // stays deliberately unmanaged: Renovate's dockerfile manager is not
-  // enabled below. Unlike rsync-crypt's ALPINE_VERSION, there is no
-  // annotated pin or custom regex manager anchoring this one, and it is
-  // this demo's fixture for checklist-dev-docker's hadolint-docker hook
-  // rather than a production base image with its own upgrade cadence.
-  // Wiring it up would mean re-deriving the same Pin Only / cooldown
-  // reasoning docs/MERGE_PIPELINE.md already spells out for
-  // requirements.txt, for a surface this demo does not need automated.
-  // Bumping the tag is a manual edit when there is a reason to.
+  // The root Dockerfile (`FROM python:3.12-slim`) stays deliberately
+  // unmanaged. Unlike rsync-crypt's ALPINE_VERSION, there is no annotated
+  // pin or custom regex manager anchoring this one, and it is this demo's
+  // fixture for checklist-dev-docker's hadolint-docker hook rather than a
+  // production base image with its own upgrade cadence. Wiring it up would
+  // mean re-deriving the same Pin Only / cooldown reasoning
+  // docs/MERGE_PIPELINE.md already spells out for requirements.txt, for a
+  // surface this demo does not need automated. Bumping the tag is a manual
+  // edit when there is a reason to.
+  //
+  // Renovate's dockerfile manager is enabled below, so that exclusion is
+  // enforced by scope rather than by leaving the manager off entirely: the
+  // packageRules entry limits it to .devcontainer/Dockerfile, which pins the
+  // development container's base image by digest and does need watching.
   extends: ["config:recommended"],
 
   // Kept on despite the standing, never-resolving tracking issue it opens.
@@ -84,12 +88,13 @@
   // person rather than merging on the strength of a default nobody chose.
   automerge: false,
 
-  // Four managers, matching the four real pin surfaces this repository has
-  // (see scripts/assert-pin-only-diff.py's own docstring for the same list
-  // from the grading side). The Dockerfile is deliberately unmanaged by
-  // any bot (see the comment on extends: above), so no dockerfile manager
-  // is enabled here even though config:recommended would otherwise turn it
-  // on: "asdf" watches .tool-versions (github-cli, pre-commit); "pre-commit"
+  // The pin surfaces this repository has (see
+  // scripts/assert-pin-only-diff.py's own docstring for the same list from
+  // the grading side). "dockerfile" is enabled but scoped: the packageRules
+  // entry further down limits it to .devcontainer/Dockerfile, so it watches
+  // the development container's base image digest and never reads the root
+  // Dockerfile, which stays unmanaged for the reasons on extends: above.
+  // Beyond that: "asdf" watches .tool-versions (github-cli, pre-commit); "pre-commit"
   // watches .pre-commit-config.yaml's rev: pin, enabled explicitly below
   // since it ships disabled upstream; "github-actions" watches every
   // uses: pin under .github/workflows/; "pip_requirements" watches
@@ -105,6 +110,7 @@
     "github-actions",
     "pip_requirements",
     "custom.regex",
+    "dockerfile",
   ],
 
   // Off by default upstream ("not supported by the pre-commit maintainers
@@ -179,6 +185,46 @@
       groupName: "asdf tool versions",
       groupSlug: "asdf-tools",
       labels: ["dependencies", "tooling"],
+    },
+    // The development container's base image, pinned by digest in
+    // .devcontainer/Dockerfile. matchFileNames is what keeps the dockerfile
+    // manager to that one file, which is what leaves the root Dockerfile
+    // (`FROM python:3.12-slim`, the hadolint fixture) unwatched; see the
+    // comment on extends: at the top of this file.
+    //
+    // Never merged unattended. scripts/assert-pin-only-diff.py does not grade
+    // .devcontainer/Dockerfile as a pin surface, so `Pin Only` routes the
+    // pull request to a person anyway; saying it here means the policy does
+    // not depend on that script's path list staying as it is.
+    // GHCR returns no release timestamp for a digest, so under Renovate's
+    // default minimumReleaseAgeBehaviour (timestamp-required) the seven day
+    // window above would hold every base image bump forever and, with
+    // internalChecksFilter strict, never open the pull request at all.
+    // Measured with a dry-run=full: "digest update of
+    // ghcr.io/ivan-pinatti-labs/devcontainer-base has no releaseTimestamp to
+    // age against". timestamp-optional lets the update be offered; the review
+    // stands in for the age window, exactly as it does for the asdf plugin
+    // commits above.
+    {
+      matchManagers: ["dockerfile"],
+      matchFileNames: [".devcontainer/Dockerfile"],
+      groupName: "development container base image",
+      groupSlug: "devcontainer-base",
+      labels: ["dependencies", "tooling"],
+      minimumReleaseAgeBehaviour: "timestamp-optional",
+      automerge: false,
+    },
+    // The root Dockerfile stays unmanaged, and this is what enforces it.
+    // Enabling the dockerfile manager above makes Renovate extract every
+    // Dockerfile in the repository, this one included: confirmed with a
+    // dry-run=extract, which read `FROM python:3.12-slim` and would have
+    // proposed a newer tag for the hadolint fixture. matchFileNames on the
+    // rule above only scopes grouping and automerge policy, it does not stop
+    // extraction, so the exclusion needs saying outright here.
+    {
+      matchManagers: ["dockerfile"],
+      matchFileNames: ["Dockerfile"],
+      enabled: false,
     },
     // An asdf plugin is code: `asdf install` runs its scripts to download and
     // install each tool, inside a development container that holds a GitHub
