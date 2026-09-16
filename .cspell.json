@@ -38,6 +38,7 @@
     "pyyaml",
     "rollup",
     "ruff",
+    "SARIF",
     "shellcheck",
     "shfmt",
     "subshell",
