@@ -80,12 +80,16 @@ from collections import Counter
 # watches `requirements.txt` and `tests/requirements.txt`, both here because
 # the required `Tests` context exercises them, see the module docstring
 # above.
+# `.devcontainer/Dockerfile` was missing here for as long as Renovate has
+# been watching its base image digest, so every bump was refused as "not a
+# dependency pin file" and had to be merged by hand past a required check.
 ALLOWED_PATHS = (
     ".tool-versions",
     ".pre-commit-config.yaml",
     "requirements.txt",
     "tests/requirements.txt",
     ".github/workflows/",
+    ".devcontainer/Dockerfile",
 )
 
 # A released version, always starting with a digit (an optional single
@@ -249,6 +253,16 @@ def _normalize_bare_action_version(match: re.Match[str]) -> str:
     return f"{match.group('action_prefix')}@<version> # <version>"
 
 
+# The development container base image, pinned by digest in
+# `.devcontainer/Dockerfile` as `ARG BASE_IMAGE=<image>@sha256:<64 hex>`.
+#
+# Only the digest becomes a placeholder; the image reference to the left of
+# the `@` stays literal. A bump that also pointed the ARG at a different
+# image or registry therefore reads as a structural change and is refused,
+# the same way a swapped owner is for a `uses:` pin. The `$` anchor stops
+# trailing text appended after the digest from normalizing away.
+IMAGE_DIGEST = re.compile(r"(?P<prefix>^ARG [A-Z0-9_]+=[\w./-]+(?::[\w.-]+)?@)sha256:[0-9a-f]{64}$")
+
 FILE_HEADER = re.compile(r"^diff --git a/(?P<old>.+) b/(?P<new>.+)$")
 
 # A YAML block scalar opener: `key: |`, `key: >`, or a bare sequence item
@@ -327,8 +341,16 @@ def normalize(line: str, path: str = "", in_block_scalar: bool = False) -> str:
         return TOOL_VERSION_LINE.sub(r"\g<prefix><version>", line)
     if path.endswith("requirements.txt"):
         return REQUIREMENT_LINE.sub(r"\g<prefix><version>", line)
-    if in_block_scalar:
+    # Scoped to .github/workflows/, because a block scalar (`run: |`) is a
+    # YAML construct and cannot occur in a Dockerfile at all, while
+    # _in_block_scalar answers True whenever the diff shows no line
+    # shallower than the change. Left unscoped, every `ARG` line at
+    # indentation zero came back unnormalized and every base image digest
+    # bump was refused even once the path and the grammar were right.
+    if in_block_scalar and path.startswith(".github/workflows/"):
         return line
+    if path == ".devcontainer/Dockerfile":
+        return IMAGE_DIGEST.sub(r"\g<prefix><digest>", line)
     line = ACTION_SHA.sub(_normalize_action_pin, line)
     line = BARE_ACTION_VERSION.sub(_normalize_bare_action_version, line)
     line = REV_PIN.sub(r"\g<prefix><version>", line)
