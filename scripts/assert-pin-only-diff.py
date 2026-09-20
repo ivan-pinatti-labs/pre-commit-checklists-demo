@@ -80,8 +80,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # The pin surfaces the dependency bot actually maintains in this
 # repository, all through Renovate's own native managers (see
-# .github/renovate.json5's enabledManagers): the asdf manager watches
-# `.tool-versions` (github-cli, pre-commit); the pre-commit manager watches
+# .github/renovate.json5's enabledManagers): the pre-commit manager watches
 # `.pre-commit-config.yaml`'s `rev:` pin; the github-actions manager watches
 # every `uses:` pin under `.github/workflows/`; the pip_requirements manager
 # watches `requirements.txt` and `tests/requirements.txt`, both here because
@@ -91,7 +90,6 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # been watching its base image digest, so every bump was refused as "not a
 # dependency pin file" and had to be merged by hand past a required check.
 ALLOWED_PATHS = (
-    ".tool-versions",
     ".pre-commit-config.yaml",
     "requirements.txt",
     "tests/requirements.txt",
@@ -101,7 +99,7 @@ ALLOWED_PATHS = (
 
 # A released version, always starting with a digit (an optional single
 # leading `v` aside): `2.2.2`, `v2.2.2`, `4.6.2`. Anchors both `rev:` in
-# `.pre-commit-config.yaml` and every value in `.tool-versions`, and is
+# `.pre-commit-config.yaml`, and is
 # deliberately narrower than "any tag-shaped token": a floating ref like
 # `main` or `latest` is made entirely of characters this would otherwise
 # accept, and normalizing it the same as a real release would let a
@@ -109,16 +107,6 @@ ALLOWED_PATHS = (
 # it after the diff is already merged, with nothing left in the diff to
 # catch it.
 RELEASE = r"v?[0-9][0-9A-Za-z.+_-]*"
-
-# `.tool-versions` writes `<tool> <version>`, one per line, with nothing to
-# anchor on but the space. That cannot go in the prefix set below, because a
-# lookbehind of variable width is not allowed and "the word after a space"
-# would match most of a workflow file. It is matched whole-line instead, and
-# only for that file, which is why normalize() takes the path. The value
-# after the space has to be a real release, not merely non-blank:
-# `pre-commit main` would otherwise normalize identically to
-# `pre-commit 4.5.1`.
-TOOL_VERSION_LINE = re.compile(r"^(?P<prefix>[A-Za-z0-9_.-]+[ \t]+)" + RELEASE + r"[ \t]*$")
 
 # A pip requirement, `<name>==<version>`, one per line. Matched whole-line and
 # only for a requirements file, the same way TOOL_VERSION_LINE is and for the
@@ -541,8 +529,6 @@ def _whole_file_block_scalars(
 
 def normalize(line: str, path: str = "", in_block_scalar: bool = False) -> str:
     """Reduce a line to everything about it that a version bump may not change."""
-    if path.endswith(".tool-versions"):
-        return TOOL_VERSION_LINE.sub(r"\g<prefix><version>", line)
     if path.endswith("requirements.txt"):
         return REQUIREMENT_LINE.sub(r"\g<prefix><version>", line)
     # Scoped to .github/workflows/, because a block scalar (`run: |`) is a

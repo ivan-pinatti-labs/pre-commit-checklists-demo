@@ -119,12 +119,14 @@ workflow runs from events a `GITHUB_TOKEN` creates).
 
 ## A dependency bot pull request
 
-Renovate (`.github/renovate.json5`: `asdf`, `pre-commit`, `github-actions`,
-`pip_requirements`) is the only dependency bot with write access to this
+Renovate (`.github/renovate.json5`: `pre-commit`, `github-actions`,
+`pip_requirements`, `dockerfile`) is the only dependency bot with write access to this
 repository, and it opens pull requests unattended. It was not always the
 only one: until 2026-09-08, Dependabot (`.github/dependabot.yml`) managed
 the `pre-commit`, `github-actions` and `pip` surfaces, and Renovate managed
 only `asdf`, the one format neither Dependabot ecosystem here could read.
+asdf itself was removed from this organization on 2026-09-19, so that
+surface is gone entirely and the tools it pinned come from packages now.
 `.github/dependabot.yml` is gone now, deleted rather than left disabled,
 since this is a real consumer repository and not a template with a reason
 to keep a dormant copy around; every surface it used to own moved to
