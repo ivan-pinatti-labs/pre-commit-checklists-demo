@@ -111,15 +111,21 @@ python -m pytest tests
 docker build --tag pre-commit-checklists-demo:local .
 ```
 
-Tool versions come only from this repository's `.tool-versions`, and the
-Python packages from `requirements.txt` and `tests/requirements.txt`, the
-same two files CI installs. A tool this repository does not pin is missing in
-the container rather than borrowed from somewhere else, which is how a
-missing pin shows up.
+Tools come from signed package repositories, installed in
+`.devcontainer/Dockerfile`: `pre-commit` from Ubuntu's own archive, `gh` from
+GitHub's, whose signing key the base image checks against a fingerprint and
+installs without enabling the repository. The Python packages come from
+`requirements.txt` and `tests/requirements.txt`, the same two files CI
+installs. A tool this repository does not install is missing in the container
+rather than borrowed from somewhere else, which is how a missing dependency
+shows up.
 
-The asdf plugins that install those tools are pinned too, in
-`.devcontainer/asdf-plugins`: each from its repository URL, at a commit
-someone has read. A plugin is a set of scripts that `asdf install` runs, so a
-new tool needs its plugin added there (the build fails without it), and
-Renovate proposes new plugin commits as pull requests for a person to review,
-never merged automatically.
+There is no version manager and no `.tool-versions`. Package versions are
+deliberately unpinned, because Ubuntu and GitHub both ship security fixes by
+moving a version inside a release. What is pinned is the base image digest,
+which Renovate keeps current.
+
+Rebuilding can therefore give you different package versions than it did last
+week, by design: the digest pins what the container builds on, not what apt
+resolves on top. `make shell` opens a shell in here from an ordinary
+terminal.

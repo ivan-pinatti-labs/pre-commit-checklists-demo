@@ -22,29 +22,26 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends python3-venv \
   && rm -rf /var/lib/apt/lists/*
 
+# github-cli from GitHub's own signed repository, whose key the base image
+# checks against a fingerprint and installs without enabling the repository,
+# so the source entry here is what opts in. pre-commit from Ubuntu.
+#
+# Versions are deliberately unpinned: Ubuntu and GitHub both ship security
+# fixes by moving a version inside a release. That makes this layer rolling
+# rather than reproducible, and the two should not be confused: the digest
+# above fixes what this builds on and says nothing about what apt resolves on
+# top. See the base image's docs/TOOL_SOURCES.md.
+# hadolint ignore=DL3008
+RUN printf '%s\n' \
+      'deb [arch=amd64 signed-by=/usr/share/keyrings/github-cli.gpg] https://cli.github.com/packages stable main' \
+      > /etc/apt/sources.list.d/github-cli.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+    gh \
+    pre-commit \
+  && rm -rf /var/lib/apt/lists/*
+
 USER 1000:1000
-
-# Every asdf plugin, from its repository URL at the commit
-# .devcontainer/asdf-plugins pins, never by short name from asdf's plugin
-# index. A tool in .tool-versions with no pinned plugin has no plugin at all
-# here, so `asdf install` below fails instead of fetching one unreviewed.
-COPY --chown=1000:1000 .devcontainer/asdf-plugins /tmp/tool-versions/asdf-plugins
-RUN while read -r name url _ commit; do \
-    case "${name}" in '' | '#'*) continue ;; esac; \
-    asdf plugin add "${name}" "${url}" \
-      && git -C "${ASDF_DATA_DIR}/plugins/${name}" checkout --quiet "${commit}" \
-      || exit 1; \
-  done < /tmp/tool-versions/asdf-plugins
-
-# Every tool .tool-versions pins, installed from that file. It is copied to a
-# scratch directory and removed afterwards rather than left in the home
-# directory, where asdf would treat it as a global fallback: a tool this
-# repository does not pin should be missing in this container, not silently
-# supplied.
-COPY --chown=1000:1000 .tool-versions /tmp/tool-versions/.tool-versions
-WORKDIR /tmp/tool-versions
-RUN asdf install \
-  && rm -rf /tmp/tool-versions
 
 # The demo's own dependency and its test suite's, from the same two
 # requirements files CI installs.
