@@ -13,8 +13,9 @@ reviews:
     # twelve hours passed with no review of the head commit and no
     # indication that anything was waiting. Recovering needs a manual
     # `@coderabbitai review`, posted by a person: CodeRabbit ignores that
-    # command from a bot account, which is why the workflow that used to post
-    # it hourly was retired on 2026-09-20.
+    # command from a bot account. A workflow used to post it hourly with a
+    # personal access token, so it did come from a human account and did
+    # land; it was retired on 2026-09-21 on cost, not capability.
     auto_pause_after_reviewed_commits: 0
 
     # Mirrors the library's own setting: reviews wait for a pull request to
