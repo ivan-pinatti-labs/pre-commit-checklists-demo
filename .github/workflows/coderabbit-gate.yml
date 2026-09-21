@@ -81,16 +81,17 @@ name: CodeRabbit Gate
   # assuming the SHA it was told about is a pull request head.
   status:
   schedule:
-    # Offset from the retired coderabbit-review-queue.yml's :07 so the two
-    # hourly jobs did
-    # not compete for the same GitHub Actions minute for no reason. Also
-    # offset from every other repository's own hourly sweeps in this
-    # organization: ivan-pinatti-labs/rsync-crypt uses :47 and :23,
-    # ivan-pinatti-labs/.github uses :47 and :23, and
-    # ivan-pinatti-labs/github-template uses :53 and :29. This repository's
-    # own pair, :31 and :07, keeps the same 24 minute offset between the two
-    # jobs as every sibling repository while landing on two minutes none of
-    # them already use.
+    # :31 rather than on the hour. This is the hourly sweep that re-grades
+    # every open pull request, so a missed or failed run recovers on its own.
+    #
+    # The minute is deliberate but no longer contended. It was picked to clear
+    # this repository's own coderabbit-review-queue.yml at :07 and every
+    # sibling repository's hourly pair, back when each repository ran two
+    # hourly CodeRabbit jobs rather than one. Those queue workflows were all
+    # retired on 2026-09-21, so only the sweeps remain, and they are already
+    # spread across the hour. Kept as is: there is no reason to move a
+    # schedule that works, and moving it would only risk colliding with a
+    # sibling.
     - cron: "31 * * * *"
   workflow_dispatch:
     inputs:
