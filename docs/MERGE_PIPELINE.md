@@ -204,9 +204,8 @@ document.
 ## Recovering a stuck `Review Verified`
 
 `coderabbit-gate.yml`'s hourly schedule (`31 * * * *`, offset from
-`coderabbit-review-queue.yml`'s `7 * * * *`, and from every other
-repository's own hourly sweeps in this organization: rsync-crypt and
-`.github` at `47`/`23`, `github-template` at `53`/`29`) is a real
+every other repository's own hourly sweep in this organization:
+rsync-crypt and `.github` at `47`, `github-template` at `53`) is a real
 mitigation, not a guarantee: GitHub's own documentation says scheduled
 workflows on public repositories are deprioritized under load and can be
 skipped outright rather than merely delayed, and rsync-crypt has already
@@ -217,16 +216,24 @@ every open pull request at once. See rsync-crypt's fuller document,
 "Recovering a stuck `Review Verified`, honestly," for the full reasoning; it
 applies here unchanged.
 
-`coderabbit-review-queue.yml`'s hourly nudge (`7 * * * *`) is what actually
-gets CodeRabbit to look at a bot pull request whose `Pin Only` verdict
-failed, since CodeRabbit never reviews a bot's pull request on its own: a
-clean pin-only bump never reaches this nudge at all, because `Review
-Verified` already resolved to `success` with no CodeRabbit involvement (see
-"A dependency bot pull request" above). See rsync-crypt's `AGENTS.md`,
-"CodeRabbit silently ignores `@coderabbitai review` from a bot account," for
-why that comment has to come from a human account, or from
-`CODERABBIT_NUDGE_TOKEN` rather than the default `GITHUB_TOKEN`, and for
-what to check before assuming a nudge is in flight.
+CodeRabbit never reviews a bot's pull request on its own, so a bot pull
+request whose `Pin Only` verdict failed needs an explicit
+`@coderabbitai review`. A clean pin-only bump never needs one, because
+`Review Verified` already resolved to `success` with no CodeRabbit
+involvement (see "A dependency bot pull request" above).
+
+An hourly workflow used to post that comment. It was retired on 2026-09-21,
+on cost rather than on capability: it posted with a personal access token, so
+the comment came from a human account and CodeRabbit answered it within
+seconds. What it cost was an organization secret scoped per repository that
+fails silently when a repository is left off its visibility list, and a job
+that could not see the shared review quota it was firing into. See
+rsync-crypt's `AGENTS.md`, "Why the hourly nudge was retired". A person posts
+it instead, which needs no stored credential:
+
+```shell
+gh pr comment <n> --body '@coderabbitai review'
+```
 
 ## The merge queue
 
