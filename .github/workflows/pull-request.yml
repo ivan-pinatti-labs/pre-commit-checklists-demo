@@ -8,9 +8,9 @@ name: PR Validation
 # follows.
 #
 # The pre-commit job below publishes the exact check context "Pre-commit"
-# (its name:, not its job id): docs/MERGE_PIPELINE.md's coderabbit-gate.yml,
-# bot-auto-merge.yml, and coderabbit-review-queue.yml all hardcode that
-# string as a required context to wait on. It was named "Pre-Commit Checks"
+# (its name:, not its job id): docs/MERGE_PIPELINE.md's coderabbit-gate.yml
+# and bot-auto-merge.yml both hardcode that string as a required context to
+# wait on. It was named "Pre-Commit Checks"
 # before this repository's merge pipeline was ported in from
 # ivan-pinatti-labs/rsync-crypt; renaming a required check's context after
 # branch protection already requires the old name breaks the very next pull

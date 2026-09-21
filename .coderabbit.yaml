@@ -12,8 +12,9 @@ reviews:
     # .coderabbit.yaml and rsync-crypt's copy, where this was first fixed):
     # twelve hours passed with no review of the head commit and no
     # indication that anything was waiting. Recovering needs a manual
-    # `@coderabbitai review`, which is what docs/MERGE_PIPELINE.md's
-    # `coderabbit-review-queue.yml` now automates for this repository.
+    # `@coderabbitai review`, posted by a person: CodeRabbit ignores that
+    # command from a bot account, which is why the workflow that used to post
+    # it hourly was retired on 2026-09-20.
     auto_pause_after_reviewed_commits: 0
 
     # Mirrors the library's own setting: reviews wait for a pull request to
