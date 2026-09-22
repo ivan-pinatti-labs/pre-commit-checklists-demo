@@ -133,11 +133,12 @@ to keep a dormant copy around; every surface it used to own moved to
 Renovate's own native managers, which read the same files. For the ones
 that are pin only:
 
-1. **`Pin Only` is graded.** `scripts/assert-pin-only-diff.py` checks that
-   every changed line differs from its counterpart in nothing but a
-   version, in a pin position, across five allowed pin surfaces
-   (`.tool-versions`, `.pre-commit-config.yaml`, `.github/workflows/`,
-   `requirements.txt` and `tests/requirements.txt`), and
+1. **`Pin Only` is graded.** The shared pin-only check in
+   ivan-pinatti-labs/gh-actions checks that every changed line differs from
+   its counterpart in nothing but a version, in a pin position, across the
+   five pin surfaces `.github/pin-only.yml` names
+   (`.pre-commit-config.yaml`, `requirements.txt`, `tests/requirements.txt`,
+   `.github/workflows/` and `.devcontainer/Dockerfile`), and
    `coderabbit-gate.yml` publishes its verdict as the `Pin Only` status. A
    number that is not a pin does not count as one.
 2. **The approval is supplied, conditionally.** `bot-auto-merge.yml` waits
@@ -160,12 +161,12 @@ have. Now that `Tests` exists and exercises the pinned dependencies, both
 requirements files are pin surfaces and a pip bump merges unattended like
 any other, the same today under Renovate's `pip_requirements` manager as it
 did under Dependabot's `pip` ecosystem before it. See
-`scripts/assert-pin-only-diff.py`'s own docstring for the full reasoning; it
+the shared check's own documentation for the full reasoning; it
 is not restated here. The Dockerfile's `FROM python:3.12-slim` pin stays
 unmanaged (see `.github/renovate.json5`'s comment on `extends:`), so no bot
 pull request ever touches it in the first place.
 
-`scripts/coderabbit-review-verdict.py`'s bot lane resolves `Review Verified`
+The shared review verdict's bot lane resolves `Review Verified`
 straight to `success` with the description "pin-only diff, nothing to
 review" the moment `Pin Only` reads `success`, and CodeRabbit is never asked
 for an opinion; see rsync-crypt's document, "What actually gets reviewed,
@@ -191,7 +192,7 @@ review quota, a skipped draft, and an actual completed review all read
 `success`. Three pull requests merged with no review having actually
 happened on `docker-torrent-box-with-vpn` as a direct result (its #114).
 
-`scripts/coderabbit-review-verdict.py`, published as `Review Verified` by
+The shared review verdict, published as `Review Verified` by
 `coderabbit-gate.yml`, is the fix: it reads the actual description behind
 the `CodeRabbit` status rather than its color, and grades in three lanes (a
 draft is `pending`; a clean pin-only bot pull request is `success` with no

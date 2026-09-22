@@ -3,8 +3,8 @@
 # A floor resolves to whatever is newest on PyPI when the venv is built, which
 # puts the seven day `minimumReleaseAge` in .github/renovate.json5 out of the
 # loop entirely: that window governs when Renovate proposes a change, not
-# what pip installs at build time. It also leaves scripts/assert-pin-only-diff.py's
-# REQUIREMENT_LINE unable to recognize the line as a pin at all (it matches
+# what pip installs at build time. It also leaves the shared Pin Only check's
+# requirement_line grammar unable to recognize the line as a pin at all (it matches
 # `==` only), so a floor bump would fail `Pin Only` and never reach the
 # unattended lane `bot-auto-merge.yml` grades on regardless. Same reasoning as
 # ivan-pinatti-labs/docker-torrent-box-with-vpn's tests/requirements.txt.

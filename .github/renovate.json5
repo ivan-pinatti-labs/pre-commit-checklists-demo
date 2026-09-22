@@ -48,7 +48,7 @@
   // top of that floor.
   //
   // Daily. A pin-only bump resolves `Review Verified` through
-  // scripts/coderabbit-review-verdict.py's bot lane without CodeRabbit ever
+  // the shared review verdict's bot lane without CodeRabbit ever
   // being asked, so it consumes no review quota, which is why the
   // organization's per-repository day table was dropped on 2026-09-02 in
   // favour of checking daily everywhere. See ivan-pinatti-labs/.github's
@@ -87,9 +87,8 @@
   // person rather than merging on the strength of a default nobody chose.
   automerge: false,
 
-  // The pin surfaces this repository has (see
-  // scripts/assert-pin-only-diff.py's own docstring for the same list from
-  // the grading side). "dockerfile" is enabled but scoped: the packageRules
+  // The pin surfaces this repository has (see .github/pin-only.yml for the
+  // same list from the grading side). "dockerfile" is enabled but scoped: the packageRules
   // entry further down limits it to .devcontainer/Dockerfile, so it watches
   // the development container's base image digest and never reads the root
   // Dockerfile, which stays unmanaged for the reasons on extends: above.
@@ -99,7 +98,7 @@
   // uses: pin under .github/workflows/; "pip_requirements" watches
   // requirements.txt and tests/requirements.txt; "custom.regex" watches the
   // development container base image digest. That last one is
-  // the surface scripts/assert-pin-only-diff.py deliberately does not grade
+  // the surface .github/pin-only.yml deliberately does not name
   // as a pin: a plugin change is code, and `Pin Only` sending it to a person
   // is the intended outcome.
   enabledManagers: [
@@ -192,8 +191,9 @@
     // minimumReleaseAge, sends Ubuntu minor and major moves to a
     // person, and only publishes from a reviewed merge to main. A digest
     // arriving here has therefore already passed that gate, and `Pin Only`
-    // grades the `ARG BASE_IMAGE=<image>@sha256:<digest>` line (IMAGE_DIGEST in
-    // scripts/assert-pin-only-diff.py), so the ordinary bot lane approves it.
+    // grades the `ARG BASE_IMAGE=<image>@sha256:<digest>` line (the shared
+    // pin-only check's image_digest grammar), so the ordinary bot lane
+    // approves it.
     // GHCR returns no release timestamp for a digest, so under Renovate's
     // default minimumReleaseAgeBehaviour (timestamp-required) the seven day
     // window above would hold every base image bump forever and, with
@@ -255,8 +255,8 @@
     // only. Disabled here so this migration hands Renovate exactly the
     // scope Dependabot had, not a wider one nobody has reviewed the
     // implications of. Nothing downstream would have merged one of these
-    // unattended regardless, since scripts/assert-pin-only-diff.py's
-    // REV_PIN and ACTION_SHA patterns do not match a runner OS or a with:
+    // unattended regardless, since the shared pin-only check's
+    // rev_pin and action_sha grammars do not match a runner OS or a with:
     // input and Pin Only would have refused any such diff, but this rule
     // stops the pull request from being opened at all rather than relying
     // on that fallback for something that was never in scope.
