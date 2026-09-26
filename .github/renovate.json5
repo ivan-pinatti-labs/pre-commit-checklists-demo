@@ -7,7 +7,7 @@
   // .pre-commit-config.yaml, every uses: pin under .github/workflows/, and
   // the pyyaml/pytest pins in requirements.txt and tests/requirements.txt.
   // Renovate already covered the one gap Dependabot could never reach on
-  // its own: the development container's base image digest and the
+  // its own: the L2 image digest and the
   // pre-commit rev: pin. Renovate's built-in managers watch both by
   // default, so no custom manager configuration is needed beyond
   // enabledManagers below.
@@ -24,8 +24,8 @@
   //
   // Renovate's dockerfile manager is enabled below, so that exclusion is
   // enforced by scope rather than by leaving the manager off entirely: the
-  // packageRules entry limits it to .devcontainer/Dockerfile, which pins the
-  // development container's base image by digest and does need watching.
+  // packageRules entry limits it to .devcontainer/l2/Dockerfile, which pins the
+  // shared L2 image by digest and does need watching.
   extends: ["config:recommended"],
 
   // Kept on despite the standing, never-resolving tracking issue it opens.
@@ -89,19 +89,19 @@
 
   // The pin surfaces this repository has (see .github/pin-only.yml for the
   // same list from the grading side). "dockerfile" is enabled but scoped: the packageRules
-  // entry further down limits it to .devcontainer/Dockerfile, so it watches
-  // the development container's base image digest and never reads the root
+  // entry further down limits it to .devcontainer/l2/Dockerfile, so it watches
+  // the L2 image digest and never reads the root
   // Dockerfile, which stays unmanaged for the reasons on extends: above.
   // Beyond that: "pre-commit"
   // watches .pre-commit-config.yaml's rev: pin, enabled explicitly below
   // since it ships disabled upstream; "github-actions" watches every
   // uses: pin under .github/workflows/; "pip_requirements" watches
   // requirements.txt and tests/requirements.txt; "custom.regex" watches the
-  // development container base image digest, which
+  // L2 image digest, which
   // .github/pin-only.yml does name, grading it with the image_digest
   // grammar, so a digest bump reaches the bot lane. The reasoning for that
-  // is on the packageRules entry for .devcontainer/Dockerfile further down:
-  // ivan-pinatti-labs/devcontainer-images ages its own upstream inputs and
+  // is on the packageRules entry for .devcontainer/l2/Dockerfile further down:
+  // ivan-pinatti-labs/devcontainer-airlock ages its own upstream inputs and
   // publishes only from a reviewed merge, so the digest has already passed a
   // gate before it arrives here.
   enabledManagers: [
@@ -180,8 +180,8 @@
       automerge: true,
       addLabels: ["automerge"],
     },
-    // The development container's base image, pinned by digest in
-    // .devcontainer/Dockerfile. matchFileNames is what keeps the dockerfile
+    // The shared L2 image, pinned by digest in
+    // .devcontainer/l2/Dockerfile. matchFileNames is what keeps the dockerfile
     // manager to that one file, which is what leaves the root Dockerfile
     // (`FROM python:3.12-slim`, the hadolint fixture) unwatched; see the
     // comment on extends: at the top of this file.
@@ -189,13 +189,13 @@
     // Merged unattended. A digest update matches none of the automerge
     // grants above, which cover patch and minor only, so this rule grants
     // it itself. This is the
-    // organization's own image, built by ivan-pinatti-labs/devcontainer-images,
+    // organization's own image, built by ivan-pinatti-labs/devcontainer-airlock,
     // and the quality gate lives there rather than in each consumer: that
     // repository ages its own upstream inputs through a seven day
     // minimumReleaseAge, sends Ubuntu minor and major moves to a
     // person, and only publishes from a reviewed merge to main. A digest
     // arriving here has therefore already passed that gate, and `Pin Only`
-    // grades the `ARG BASE_IMAGE=<image>@sha256:<digest>` line (the shared
+    // grades the `ARG L2_IMAGE=<image>@sha256:<digest>` line (the shared
     // pin-only check's image_digest grammar), so the ordinary bot lane
     // approves it.
     // GHCR returns no release timestamp for a digest, so under Renovate's
@@ -205,13 +205,13 @@
     // Measured with a dry-run=full: "digest update of
     // ghcr.io/ivan-pinatti-labs/devcontainer-base has no releaseTimestamp to
     // age against". timestamp-optional lets the update be offered; the seven
-    // day window is applied upstream instead, in devcontainer-images, where the
+    // day window is applied upstream instead, in devcontainer-airlock, where the
     // image's own inputs are aged before anything is published.
     {
       matchManagers: ["dockerfile"],
-      matchFileNames: [".devcontainer/Dockerfile"],
-      groupName: "development container base image",
-      groupSlug: "devcontainer-base",
+      matchFileNames: [".devcontainer/l2/Dockerfile"],
+      groupName: "L2 image",
+      groupSlug: "airlock-l2",
       labels: ["dependencies", "tooling"],
       minimumReleaseAgeBehaviour: "timestamp-optional",
       automerge: true,

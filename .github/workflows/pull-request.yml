@@ -82,8 +82,8 @@ jobs:
           restore-keys: |
             pre-commit|
 
-      # Pinned here, and matching the version Ubuntu ships in the
-      # development container, so this job and a local `pre-commit install`
+      # Pinned here, and matching the version Ubuntu ships in the L2
+      # image, so this job and a local `pre-commit install`
       # run the same release.
       - name: Install pre-commit
         run: pip install "pre-commit==4.5.1"

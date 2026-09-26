@@ -197,9 +197,9 @@ You'll also need Docker on `PATH` for `checklist-dev-docker`, which runs
 Every other hook id here needs nothing beyond `pre-commit` and
 `detect-secrets`.
 
-Or run it in the [development container](.devcontainer/README.md), which
-carries all of that, plus this repository's test suite and image build, and
-needs only rootless Podman on the host.
+Or run it in [devcontainer-airlock](.devcontainer/README.md), which carries
+all of that in containers (and `make test` for this repository's test
+suite), and needs only rootless Podman on the host.
 
 Try a commit too, since the commit-msg stage above only runs on a real
 `git commit`, not on `pre-commit run --all-files`:
