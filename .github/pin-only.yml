@@ -6,19 +6,25 @@
 # bot cannot widen its own lane.
 #
 # Reproduces the scripts/assert-pin-only-diff.py this replaced: the five pin
-# surfaces real to this repository, both requirements files included.
+# surfaces real to this repository, both requirements files included, and
+# the Makefile's two coverage images.
 allowed_paths:
   - .pre-commit-config.yaml
   - requirements.txt
   - tests/requirements.txt
   - .github/workflows/
   - .devcontainer/l2/Dockerfile
+  - Makefile
 
 rules:
   - path: "*requirements.txt"
     grammars: [requirement_line]
   - path: .devcontainer/l2/Dockerfile
     grammars: [image_digest]
+  # The images `make coverage` runs, pinned by digest; Renovate's packageRules
+  # keep their tags fixed, so only the digest ever moves.
+  - path: Makefile
+    grammars: [digest]
   - path: .github/workflows/
     grammars:
       - name: action_sha

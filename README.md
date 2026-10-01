@@ -151,10 +151,20 @@ TRC-20 accepts TRX, USDT, and USDC. See the
 | [`Dockerfile`](Dockerfile) | `checklist-dev-docker` |
 | `.secrets.baseline` | `checklist-security-credentials` |
 | [`.github/workflows/`](.github/workflows/), [`.github/renovate.json5`](.github/renovate.json5) | `checklist-github-actions` |
+| [`tests/rotate-logs.test.sh`](tests/rotate-logs.test.sh) | `checklist-dev-shell` |
+| [`scripts/kcov_to_sonar.py`](scripts/kcov_to_sonar.py), [`tests/`](tests/) Python | `checklist-dev-python` |
 
 `.editorconfig`, `.yamllint.yml`, `.markdownlint.yaml`, and `.cspell.json`
 are the tool configs the hooks above need; each was copied straight from
 the library's `templates/` directory.
+
+`.coveragerc`, `sonar-project.properties` and the `coverage` target in the
+[`Makefile`](Makefile) are not the library's. They hold this repository's
+own code at 100% test coverage (the Python by lines and branches, the shell
+by lines) and feed SonarQube Cloud, see
+[docs/MERGE_PIPELINE.md](docs/MERGE_PIPELINE.md). The `coverage` hook at the
+end of [`.pre-commit-config.yaml`](.pre-commit-config.yaml) is the one local
+hook there, and a consumer of the library has no reason to copy it.
 
 `checklist-git-valid-branches`, `checklist-git-commit-msg`, and
 `checklist-git-protected-branches` aren't file-based; they run against your

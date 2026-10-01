@@ -160,3 +160,13 @@ def test_main_treats_the_threshold_as_inclusive(monkeypatch, tmp_path, capsys):
     code = check_disk_usage.main(["--path", str(tmp_path), "--threshold", "90"])
     assert code == 1
     assert "at or above" in capsys.readouterr().err
+
+
+def test_main_reads_sys_argv_when_called_without_arguments(monkeypatch, tmp_path, capsys):
+    """How the script runs as a program: main() with no argv reads sys.argv."""
+    monkeypatch.setattr(check_disk_usage.shutil, "disk_usage", lambda _: (1000, 250, 750))
+    monkeypatch.setattr(
+        check_disk_usage.sys, "argv", ["check_disk_usage.py", "--path", str(tmp_path)]
+    )
+    assert check_disk_usage.main() == 0
+    assert str(tmp_path) in capsys.readouterr().out

@@ -283,6 +283,30 @@
       matchManagers: ["pip_requirements"],
       addLabels: ["python"],
     },
+    // The two images `make coverage` runs in the Makefile move by digest
+    // only. A tag change is not a pin bump: python 3.12 is the interpreter
+    // the tests and SonarQube's python version setting assume, and kcov
+    // publishes nothing but `latest`.
+    {
+      matchManagers: ["custom.regex"],
+      matchFileNames: ["Makefile"],
+      matchUpdateTypes: ["major", "minor", "patch"],
+      enabled: false,
+    },
+  ],
+
+  customManagers: [
+    {
+      // The container images in the Makefile, each annotated the way
+      // Renovate documents for a regex manager:
+      //   # renovate: datasource=docker depName=<image>
+      //   NAME ?= <image>:<tag>@sha256:<digest>
+      customType: "regex",
+      managerFilePatterns: ["/^Makefile$/"],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+[A-Z_]+ \\?= \\S+?:(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[0-9a-f]{64})",
+      ],
+    },
   ],
 
 }

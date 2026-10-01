@@ -63,6 +63,15 @@ runs SonarQube Cloud's analysis on every pull request and every push to
 once it has run green on pull requests and on `main`, at which point
 `codeql.yml` is removed; until then CodeQL keeps running alongside it.
 
+Before scanning, the job runs `make coverage`, which holds the Python at 100%
+of lines and branches and `rotate-logs.sh` at 100% of lines, and hands both
+reports to SonarQube Cloud. The Python goes through coverage.py and the shell
+through kcov, each in a podman container that sees the source only as a tar
+stream on its standard input. SonarQube has no importer for shell coverage,
+so `scripts/kcov_to_sonar.py` rewrites kcov's report into SonarQube's generic
+coverage format. The job fails below 100% even though SonarQube's own gate
+only asks for 80% of new code, which the Free plan cannot raise.
+
 ## A human pull request
 
 Open it as a **draft** first. `Pre-commit` runs the full hook set over every

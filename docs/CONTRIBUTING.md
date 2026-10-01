@@ -32,6 +32,13 @@ ones. You'll also need Docker on `PATH` for the Dockerfile checklist.
 from the library; see [`.pre-commit-config.yaml`](../.pre-commit-config.yaml)
 for exactly which hook ids and at which git stage.
 
+`make coverage` runs the Python tests under coverage.py and the shell tests
+under kcov, each in a podman container, and fails unless both reach 100%: the
+Python by lines and branches, the shell by lines. It needs podman on `PATH`.
+It also runs as a pre-push hook, so run `pre-commit install` again in an
+existing clone to pick up the pre-push stage. A new script ships with tests
+that reach every line of it.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under
