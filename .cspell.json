@@ -2,7 +2,9 @@
   "version": "0.2",
   "language": "en",
   "ignorePaths": [
-    ".secrets.baseline"
+    ".secrets.baseline",
+    "requirements.txt",
+    "tests/requirements.txt"
   ],
   "words": [
     "Dsonar",
@@ -71,6 +73,7 @@
     "tmpfs",
     "tonumber",
     "tostring",
+    "trixie",
     "uniquetargets",
     "unreviewed",
     "unsanitised",

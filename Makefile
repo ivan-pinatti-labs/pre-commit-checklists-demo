@@ -18,7 +18,7 @@ all: help
 # there is no l2, and the same commands run as they are.
 L2_NET := $(if $(shell command -v l2 2>/dev/null),l2 --net --,)
 test:
-	@$(L2_NET) bash -c 'set -e; v="$$HOME/.cache/tests-venv"; python3 -m venv "$$v"; "$$v/bin/pip" install --quiet --disable-pip-version-check -r requirements.txt -r tests/requirements.txt; "$$v/bin/python" -m pytest tests'
+	@$(L2_NET) bash -c 'set -e; v="$$HOME/.cache/tests-venv"; python3 -m venv "$$v"; "$$v/bin/pip" install --quiet --disable-pip-version-check --require-hashes --only-binary=:all: -r tests/requirements.txt; "$$v/bin/python" -m pytest tests'
 
 # The workbench targets (make claude, make codex, make unlock and the rest)
 # come from a devcontainer-airlock clone, by default the one next to this
@@ -91,7 +91,7 @@ coverage:
 	$(_sources) | $(PODMAN) run --rm --interactive $(_locked) \
 		-v "$$out/python:/out:rw,Z" "$(PYTHON_IMAGE)" sh -c '$(_unpack); \
 			pip install --quiet --disable-pip-version-check --root-user-action=ignore \
-				--only-binary=:all: -r requirements.txt -r tests/requirements.txt; \
+				--require-hashes --only-binary=:all: -r tests/requirements.txt; \
 			coverage run -m pytest tests -q; \
 			coverage xml -q -o /out/coverage.xml; \
 			coverage report' || py=$$?; \

@@ -10,15 +10,23 @@
 # the Makefile's two coverage images.
 allowed_paths:
   - .pre-commit-config.yaml
+  - requirements.in
   - requirements.txt
+  - tests/requirements.in
   - tests/requirements.txt
   - .github/workflows/
   - .devcontainer/l2/Dockerfile
   - Makefile
 
 rules:
-  - path: "*requirements.txt"
+  # The exact pins Renovate bumps, and the hash locks compiled from them.
+  # hash_locked_requirements grades a lock as a whole: same packages, only
+  # versions and hashes moved, and every new hash one PyPI publishes for that
+  # release. A bump that pulls in a new package waits for a person.
+  - path: "*requirements.in"
     grammars: [requirement_line]
+  - path: "*requirements.txt"
+    grammars: [hash_locked_requirements]
   - path: .devcontainer/l2/Dockerfile
     grammars: [image_digest]
   # The images `make coverage` runs, pinned by digest; Renovate's packageRules

@@ -39,6 +39,25 @@ It also runs as a pre-push hook, so run `pre-commit install` again in an
 existing clone to pick up the pre-push stage. A new script ships with tests
 that reach every line of it.
 
+## Updating the Python dependencies
+
+`requirements.in` (the runtime pyyaml) and `tests/requirements.in` (the test
+environment) carry the exact pins. Each `requirements.txt` next to them is a
+lock compiled from it with every hash, which `pip install --require-hashes`
+checks. Renovate bumps both. To change one by hand, edit the `.in` file and
+regenerate the lock in a container, from that file's directory:
+
+```bash
+podman run --rm -v "$PWD:/w:rw,Z" -w /w ghcr.io/astral-sh/uv:python3.12-trixie-slim \
+  uv pip compile --generate-hashes --python-version=3.12 --exclude-newer=P7D \
+  --output-file=requirements.txt requirements.in
+```
+
+That is the command in the lock's own header, which Renovate replays.
+`--exclude-newer=P7D` leaves out anything released in the last seven days,
+dependencies of dependencies included. Keep pyyaml's pin equal in both `.in`
+files.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under
