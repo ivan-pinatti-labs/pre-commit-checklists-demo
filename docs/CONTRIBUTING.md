@@ -32,6 +32,51 @@ ones. You'll also need Docker on `PATH` for the Dockerfile checklist.
 from the library; see [`.pre-commit-config.yaml`](../.pre-commit-config.yaml)
 for exactly which hook ids and at which git stage.
 
+`make coverage` runs the Python tests under coverage.py and the shell tests
+under kcov, each in a podman container, and fails unless both reach 100%: the
+Python by lines and branches, the shell by lines. It needs podman on `PATH`.
+It also runs as a pre-push hook, so run `pre-commit install` again in an
+existing clone to pick up the pre-push stage. A new script ships with tests
+that reach every line of it.
+
+## Updating the Python dependencies
+
+`requirements.in` (the runtime pyyaml) and `tests/requirements.in` (the test
+environment) carry the exact pins. Each `requirements.txt` next to them is a
+lock compiled from it with every hash, which `pip install --require-hashes`
+checks. Renovate bumps both. To change one by hand, edit the `.in` file and
+regenerate the lock in a container, from that file's directory:
+
+```bash
+podman run --rm -v "$PWD:/w:rw,Z" -w /w ghcr.io/astral-sh/uv:python3.12-trixie-slim \
+  uv pip compile --generate-hashes --python-version=3.12 --exclude-newer=P7D \
+  --output-file=requirements.txt requirements.in
+```
+
+That is the command in the lock's own header, which Renovate replays.
+`--exclude-newer=P7D` leaves out anything released in the last seven days,
+dependencies of dependencies included. Keep pyyaml's pin equal in both `.in`
+files.
+
+### A security fix younger than seven days
+
+The seven day window also holds back a security release, and Renovate
+cannot make an exception: it replays the header's command as written, so its
+pull request for a vulnerability alert fails to regenerate the lock and says
+so. Update that one package by hand, letting it past the window, in the same
+container:
+
+```bash
+uv pip compile --generate-hashes --python-version=3.12 --exclude-newer=P7D \
+  --exclude-newer-package "<package>=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --output-file=requirements.txt requirements.in
+```
+
+Then edit the lock's header back to the standard command above, by hand.
+Left in, the per package date is fixed, so it would hold that package at
+today's releases for good. The lock itself does not change, and the next
+Renovate update replays the standard command once the fix is past the window.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under

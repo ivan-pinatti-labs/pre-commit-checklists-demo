@@ -174,12 +174,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Both files: requirements.txt carries the runtime dependency the tests
-      # exercise, tests/requirements.txt carries pytest itself.
+      # tests/requirements.txt is the whole test environment, the runtime
+      # pyyaml included, locked with hashes; wheels only, so no package's
+      # setup script runs at install time.
       - name: Install dependencies
         run: >-
-          pip install --only-binary=:all:
-          -r requirements.txt -r tests/requirements.txt
+          pip install --require-hashes --only-binary=:all:
+          -r tests/requirements.txt
 
       - name: Run tests
         run: python -m pytest tests -q

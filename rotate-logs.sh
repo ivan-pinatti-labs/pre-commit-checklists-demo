@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
-: '
-  Compresses log files older than a retention window and removes the
-  uncompressed originals. Meant to run from cron or a systemd timer.
-
-  Exit status codes:
-    0 - success (including "nothing to do")
-    1 - usage error
-    2 - log directory not found
-'
+# Compresses log files older than a retention window and removes the
+# uncompressed originals. Meant to run from cron or a systemd timer.
+#
+# Exit status codes:
+#   0 - success (including "nothing to do")
+#   1 - usage error
+#   2 - log directory not found
 
 if [[ "${DEBUG:-false}" = true ]]; then
   set -x

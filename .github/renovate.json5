@@ -74,6 +74,18 @@
   // matches gaining or losing a file.
   ignorePaths: ["**/node_modules/**", "**/bower_components/**"],
 
+  // The two requirements.txt files are hash locks compiled from the
+  // requirements.in next to each, with `uv pip compile --generate-hashes`.
+  // pip-compile reads each lock's header, bumps the pin in its .in file and
+  // replays that command, so the hashes move with the version. It replaced
+  // pip_requirements, which edits a requirements.txt line by line and would
+  // leave the hashes behind. `--exclude-newer=P7D` in the header is a rolling
+  // window, so a replay never resolves a release younger than seven days,
+  // transitive ones included, matching minimumReleaseAge.
+  "pip-compile": {
+    managerFilePatterns: ["/(^|/)requirements\\.txt$/"],
+  },
+
   labels: ["dependencies"],
   commitMessagePrefix: "chore:",
 
@@ -95,8 +107,9 @@
   // Beyond that: "pre-commit"
   // watches .pre-commit-config.yaml's rev: pin, enabled explicitly below
   // since it ships disabled upstream; "github-actions" watches every
-  // uses: pin under .github/workflows/; "pip_requirements" watches
-  // requirements.txt and tests/requirements.txt; "custom.regex" watches the
+  // uses: pin under .github/workflows/; "pip-compile" watches
+  // requirements.in and tests/requirements.in and regenerates their hash
+  // locked requirements.txt (see "pip-compile" below); "custom.regex" watches the
   // L2 image digest, which
   // .github/pin-only.yml does name, grading it with the image_digest
   // grammar, so a digest bump reaches the bot lane. The reasoning for that
@@ -107,7 +120,7 @@
   enabledManagers: [
     "pre-commit",
     "github-actions",
-    "pip_requirements",
+    "pip-compile",
     "custom.regex",
     "dockerfile",
   ],
@@ -269,19 +282,37 @@
       matchDepTypes: ["github-runner", "uses-with"],
       enabled: false,
     },
-    // pip_requirements reads both requirements.txt and tests/requirements.txt
-    // by its own default file match, with no directory scoping needed
-    // (confirmed with a dry-run=extract). Left ungrouped, unlike the two
-    // rules above: dependabot.yml never grouped its two pip ecosystem
-    // blocks either (no groups: key on either one), each ungrouped because
-    // there was exactly one dependency per file, so an ungrouped rule here
-    // is the same shape carried forward, not a behavior change. Only the
-    // label is added on top of the default one-pull-request-per-dependency
-    // shape, matching what either Dependabot pip block used to add
-    // (dependencies, python).
+    // pip-compile bumps the exact pins in requirements.in and
+    // tests/requirements.in and regenerates each hash locked requirements.txt
+    // by replaying the uv command in its header. Left ungrouped: one pull
+    // request per dependency, labeled python.
     {
-      matchManagers: ["pip_requirements"],
+      matchManagers: ["pip-compile"],
       addLabels: ["python"],
+    },
+    // The two images `make coverage` runs in the Makefile move by digest
+    // only. A tag change is not a pin bump: python 3.12 is the interpreter
+    // the tests and SonarQube's python version setting assume, and kcov
+    // publishes nothing but `latest`.
+    {
+      matchManagers: ["custom.regex"],
+      matchFileNames: ["Makefile"],
+      matchUpdateTypes: ["major", "minor", "patch"],
+      enabled: false,
+    },
+  ],
+
+  customManagers: [
+    {
+      // The container images in the Makefile, each annotated the way
+      // Renovate documents for a regex manager:
+      //   # renovate: datasource=docker depName=<image>
+      //   NAME ?= <image>:<tag>@sha256:<digest>
+      customType: "regex",
+      managerFilePatterns: ["/^Makefile$/"],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+[A-Z_]+ \\?= \\S+?:(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[0-9a-f]{64})",
+      ],
     },
   ],
 

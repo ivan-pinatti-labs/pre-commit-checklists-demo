@@ -1,0 +1,4 @@
+# The runtime dependency, exact pin. requirements.txt is compiled from this
+# file with hashes; regenerate it with the command in its header (see
+# docs/CONTRIBUTING.md), never edit it by hand. Renovate bumps both.
+pyyaml==6.0.3

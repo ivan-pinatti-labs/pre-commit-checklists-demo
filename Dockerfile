@@ -5,7 +5,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir --only-binary=:all: --requirement requirements.txt
+RUN pip install --no-cache-dir --require-hashes --only-binary=:all: --requirement requirements.txt
 
 # Owned by root and only executable by the user the container runs as, so
 # the scripts cannot be changed from inside it.

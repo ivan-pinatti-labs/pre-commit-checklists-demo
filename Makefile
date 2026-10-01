@@ -5,7 +5,7 @@
 # one line. Splitting one across lines leaves the trailing targets invisible
 # to it, and the phonydeclared and minphony rules then report them as
 # undeclared. Tracked upstream as checkmake#280.
-.PHONY: all help test workbench-help
+.PHONY: all help test coverage workbench-help
 
 # Bare `make` shows the target list rather than doing something surprising.
 # checkmake's minphony rule also wants `all` declared phony; see checkmake.ini.
@@ -18,7 +18,7 @@ all: help
 # there is no l2, and the same commands run as they are.
 L2_NET := $(if $(shell command -v l2 2>/dev/null),l2 --net --,)
 test:
-	@$(L2_NET) bash -c 'set -e; v="$$HOME/.cache/tests-venv"; python3 -m venv "$$v"; "$$v/bin/pip" install --quiet --disable-pip-version-check -r requirements.txt -r tests/requirements.txt; "$$v/bin/python" -m pytest tests'
+	@$(L2_NET) bash -c 'set -e; v="$$HOME/.cache/tests-venv"; python3 -m venv "$$v"; "$$v/bin/pip" install --quiet --disable-pip-version-check --require-hashes --only-binary=:all: -r tests/requirements.txt; "$$v/bin/python" -m pytest tests'
 
 # The workbench targets (make claude, make codex, make unlock and the rest)
 # come from a devcontainer-airlock clone, by default the one next to this
@@ -43,5 +43,65 @@ help:
 		'Targets:' \
 		'  help                        Show this message.' \
 		'  test                        Run the test suite, in L2 in a workbench.' \
+		'  coverage                    Python and shell coverage in containers, 100% or fail.' \
 		''
 	@$(MAKE) --no-print-directory workbench-help
+
+# Coverage of everything this repository writes, held at 100%: the Python
+# (lines and branches, .coveragerc) under coverage.py, and the shell (lines;
+# kcov reports no branches for bash) under kcov. Writes the two reports
+# SonarQube Cloud reads, $(COVERAGE_DIR)/coverage.xml and
+# $(COVERAGE_DIR)/shell.xml, and fails if either language is under 100%.
+# .github/workflows/sonarqube.yml runs this, and so does the `coverage`
+# pre-push hook.
+#
+# Both tools run in containers that cannot see this checkout. The files git
+# would commit (tracked, plus new ones not ignored) go in on standard input
+# as a tar stream, and the only host path either container gets is an empty
+# scratch directory for its report. Nothing else is mounted: no home
+# directory, no SSH agent, no token, and podman passes no environment
+# variable that is not named. Both drop every capability; kcov also gets no
+# network and a read only root filesystem. The Python container needs the
+# network for its pip install. The images are pinned by digest, and Renovate
+# moves the digests.
+#
+# The scratch directory comes from mktemp, so it lands in TMPDIR. In a
+# devcontainer-airlock workbench run this as `l2 --engine --net -- make
+# coverage`: the engine can only mount paths under the TMPDIR it sets.
+#
+# Both reports are written before either verdict is given, so CI can still
+# hand SonarQube the report of a run that falls short.
+COVERAGE_DIR ?= coverage
+PODMAN ?= $(if $(CONTAINER_HOST),podman-remote,podman)
+# renovate: datasource=docker depName=docker.io/library/python
+PYTHON_IMAGE ?= docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+# renovate: datasource=docker depName=docker.io/kcov/kcov
+KCOV_IMAGE ?= docker.io/kcov/kcov:latest@sha256:481289ae32e55e5b733019515acd10948a4f76dfed381765577db909664fc603
+SHELL_SCRIPTS := rotate-logs.sh
+
+_sources := git ls-files -z --cached --others --exclude-standard --deduplicate \
+	| tar --create --owner=0 --group=0 --numeric-owner --null --files-from=- \
+		--ignore-failed-read --file=-
+_unpack := set -e; mkdir /tmp/w; tar -x --no-same-owner -C /tmp/w; cd /tmp/w
+_locked := --cap-drop=ALL --security-opt no-new-privileges
+
+coverage:
+	@set -u; out="$$(mktemp -d)"; trap 'rm -rf "$$out"' EXIT; \
+	mkdir "$$out/python" "$$out/shell"; py=0; sh=0; \
+	$(_sources) | $(PODMAN) run --rm --interactive $(_locked) \
+		-v "$$out/python:/out:rw,Z" "$(PYTHON_IMAGE)" sh -c '$(_unpack); \
+			pip install --quiet --disable-pip-version-check --root-user-action=ignore \
+				--require-hashes --only-binary=:all: -r tests/requirements.txt; \
+			coverage run -m pytest tests -q; \
+			coverage xml -q --fail-under=0 -o /out/coverage.xml; \
+			coverage report' || py=$$?; \
+	$(_sources) | $(PODMAN) run --rm --interactive $(_locked) \
+		--network=none --read-only --tmpfs /tmp \
+		-v "$$out/shell:/out:rw,Z" "$(KCOV_IMAGE)" sh -c '$(_unpack); \
+			kcov --include-path=$(addprefix /tmp/w/,$(SHELL_SCRIPTS)) /out/kcov \
+				tests/rotate-logs.test.sh; \
+			python3 scripts/kcov_to_sonar.py /tmp/w /out/kcov/rotate-logs.test.sh.*/cobertura.xml \
+				/out/shell.xml $(SHELL_SCRIPTS)' || sh=$$?; \
+	rm -rf "$(COVERAGE_DIR)"; mkdir -p "$(COVERAGE_DIR)"; \
+	cp "$$out"/python/coverage.xml "$$out"/shell/shell.xml "$(COVERAGE_DIR)"/ 2>/dev/null || true; \
+	test "$$py" -eq 0 && test "$$sh" -eq 0
