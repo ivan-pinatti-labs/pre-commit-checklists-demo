@@ -19,3 +19,7 @@ CLAUDE.local.md
 .claude/settings.local.json
 .claude/agents/local/
 .claude/worktrees/
+
+# Coverage data, written by .github/workflows/sonarqube.yml
+.coverage
+coverage.xml

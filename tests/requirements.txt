@@ -9,6 +9,10 @@
 # unattended lane `bot-auto-merge.yml` grades on regardless. Same reasoning as
 # ivan-pinatti-labs/docker-torrent-box-with-vpn's tests/requirements.txt.
 #
+# coverage measures the suite for SonarQube Cloud, in
+# .github/workflows/sonarqube.yml.
+#
 # The runtime dependency this project actually ships, pyyaml, stays in the
 # root requirements.txt; the tests import it through check_disk_usage.
+coverage==7.16.1
 pytest==9.1.1
