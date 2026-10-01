@@ -93,7 +93,7 @@ coverage:
 			pip install --quiet --disable-pip-version-check --root-user-action=ignore \
 				--require-hashes --only-binary=:all: -r tests/requirements.txt; \
 			coverage run -m pytest tests -q; \
-			coverage xml -q -o /out/coverage.xml; \
+			coverage xml -q --fail-under=0 -o /out/coverage.xml; \
 			coverage report' || py=$$?; \
 	$(_sources) | $(PODMAN) run --rm --interactive $(_locked) \
 		--network=none --read-only --tmpfs /tmp \
