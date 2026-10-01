@@ -10,7 +10,7 @@
     2 - log directory not found
 '
 
-if [ "${DEBUG:-false}" = true ]; then
+if [[ "${DEBUG:-false}" = true ]]; then
   set -x
 fi
 
@@ -41,7 +41,7 @@ EOF
   exit 1
 }
 
-while [ $# -gt 0 ]; do
+while [[ $# -gt 0 ]]; do
   case "${1}" in
   --log-dir)
     __log_dir="${2:-}"
@@ -65,12 +65,12 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-if [ -z "${__log_dir}" ]; then
+if [[ -z "${__log_dir}" ]]; then
   echo "Error: --log-dir is required." >&2
   usage
 fi
 
-if [ ! -d "${__log_dir}" ]; then
+if [[ ! -d "${__log_dir}" ]]; then
   echo "Error: log directory '${__log_dir}' does not exist." >&2
   exit 2
 fi
@@ -78,7 +78,7 @@ fi
 __found=0
 while IFS= read -r -d '' __file; do
   __found=$((__found + 1))
-  if [ "${__dry_run}" = true ]; then
+  if [[ "${__dry_run}" = true ]]; then
     echo "Would compress: ${__file}"
     continue
   fi
@@ -86,6 +86,6 @@ while IFS= read -r -d '' __file; do
   echo "Compressed: ${__file}.gz"
 done < <(find "${__log_dir}" -maxdepth 1 -name '*.log' -mtime "+${__retention_days}" -print0)
 
-if [ "${__found}" -eq 0 ]; then
+if [[ "${__found}" -eq 0 ]]; then
   echo "Nothing older than ${__retention_days} days under ${__log_dir}."
 fi
