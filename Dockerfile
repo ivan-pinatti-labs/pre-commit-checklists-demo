@@ -12,10 +12,11 @@ RUN pip install --no-cache-dir --only-binary=:all: --requirement requirements.tx
 COPY --chmod=755 check_disk_usage.py rotate-logs.sh ./
 COPY --chmod=644 config.yaml ./
 
-# Not root. The log directory mounted in has to be writable by this user,
+# Not root (`rotator`, by its numeric id so the host can resolve it).
+# The log directory mounted in has to be writable by this user,
 # since rotating means replacing files in it.
 RUN useradd --no-create-home --uid 10001 rotator
-USER rotator
+USER 10001
 
 ENTRYPOINT ["./rotate-logs.sh"]
 CMD ["--log-dir", "/var/log/myapp"]
