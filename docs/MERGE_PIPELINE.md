@@ -57,6 +57,12 @@ anything. Unlike rsync-crypt's `Docker Build`, it does not log in to Docker
 Hub: this repository has never carried `DOCKERHUB_USERNAME` or
 `DOCKERHUB_TOKEN`, and pulling `python:3.12-slim` needs no credentials.
 
+`SonarQube`, the job in `sonarqube.yml`, is not in this table yet either. It
+runs SonarQube Cloud's analysis on every pull request and every push to
+`main` and fails when the quality gate does. It becomes a required context
+once it has run green on pull requests and on `main`, at which point
+`codeql.yml` is removed; until then CodeQL keeps running alongside it.
+
 ## A human pull request
 
 Open it as a **draft** first. `Pre-commit` runs the full hook set over every
