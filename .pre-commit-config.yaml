@@ -12,7 +12,7 @@
 default_install_hook_types: [pre-commit, commit-msg]
 repos:
   - repo: https://github.com/ivan-pinatti-labs/pre-commit-checklists
-    rev: v2.5.15
+    rev: v3.3.0
     hooks:
       # Large-file/merge-conflict/line-ending hygiene, safe on any repo.
       - id: checklist-basic
@@ -88,8 +88,9 @@ repos:
       # the commit-msg git stage, not pre-commit, which is why
       # default_install_hook_types above lists both stages.
       - id: checklist-git-commit-msg
+        args: ["--no-ai-attribution"]
         stages: [commit-msg]
-        files: ^\.git/COMMIT_EDITMSG$
+        files: COMMIT_EDITMSG$
 
       # Blocks direct commits to main/master/develop/staging.
       - id: checklist-git-protected-branches
