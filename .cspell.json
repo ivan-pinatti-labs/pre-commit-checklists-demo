@@ -37,6 +37,7 @@
     "esac",
     "gsub",
     "gzip",
+    "hotspot",
     "kcov",
     "keyrings",
     "llms",
