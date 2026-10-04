@@ -31,9 +31,9 @@ this repository's git hooks through L2:
 l2-hooks-install
 ```
 
-`make test` runs the test suite in L2, in a virtual environment kept in L2's
-per repository home and kept in step with `requirements.txt` and
-`tests/requirements.txt` by pip, through the egress proxy.
+`l2 --engine --net -- make test` runs the test suite in the pinned Python
+image `make coverage` uses, through the L2 engine, with pip reaching PyPI
+through the egress proxy.
 
 ## What is in here
 

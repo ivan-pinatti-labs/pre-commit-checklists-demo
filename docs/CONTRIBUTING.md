@@ -32,12 +32,21 @@ ones. You'll also need Docker on `PATH` for the Dockerfile checklist.
 from the library; see [`.pre-commit-config.yaml`](../.pre-commit-config.yaml)
 for exactly which hook ids and at which git stage.
 
+`make test` runs the Python tests in a podman container, on the pinned
+Python image the Makefile names, with the requirements from the hash locked
+`tests/requirements.txt`. It needs only podman on `PATH`; no virtual
+environment and no Python on the host.
+
 `make coverage` runs the Python tests under coverage.py and the shell tests
 under kcov, each in a podman container, and fails unless both reach 100%: the
 Python by lines and branches, the shell by lines. It needs podman on `PATH`.
 It also runs as a pre-push hook, so run `pre-commit install` again in an
 existing clone to pick up the pre-push stage. A new script ships with tests
-that reach every line of it.
+that reach every line of it. The shell scripts measured are not listed by
+hand: the Makefile finds every `.sh` or `.bash` file, and every file whose
+shebang runs `sh`, `bash` or `dash`, outside `tests/`, so a new one is held
+to 100% as soon as it exists. `make print-shell-scripts` shows the set, and
+`SHELL_EXCLUDE` in the Makefile takes a vendored script out of it.
 
 ## Updating the Python dependencies
 
@@ -48,8 +57,8 @@ checks. Renovate bumps both. To change one by hand, edit the `.in` file and
 regenerate the lock in a container, from that file's directory:
 
 ```bash
-podman run --rm -v "$PWD:/w:rw,Z" -w /w ghcr.io/astral-sh/uv:python3.12-trixie-slim \
-  uv pip compile --generate-hashes --python-version=3.12 --exclude-newer=P7D \
+podman run --rm -v "$PWD:/w:rw,Z" -w /w ghcr.io/astral-sh/uv:python3.14-trixie-slim \
+  uv pip compile --generate-hashes --python-version=3.14 --exclude-newer=P7D \
   --output-file=requirements.txt requirements.in
 ```
 
@@ -69,8 +78,8 @@ release (`--upgrade-package`; without it, uv keeps the version already in the
 lock, so a vulnerable dependency of a dependency would not move):
 
 ```bash
-podman run --rm -v "$PWD:/w:rw,Z" -w /w ghcr.io/astral-sh/uv:python3.12-trixie-slim \
-  uv pip compile --generate-hashes --python-version=3.12 --exclude-newer=P7D \
+podman run --rm -v "$PWD:/w:rw,Z" -w /w ghcr.io/astral-sh/uv:python3.14-trixie-slim \
+  uv pip compile --generate-hashes --python-version=3.14 --exclude-newer=P7D \
   --exclude-newer-package "<package>=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   --upgrade-package "<package>" \
   --output-file=requirements.txt requirements.in

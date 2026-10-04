@@ -57,7 +57,7 @@ hadolint on every pull request, this job only additionally proves it
 actually builds, and nothing in this pipeline needs that proof to merge
 anything. Unlike rsync-crypt's `Docker Build`, it does not log in to Docker
 Hub: this repository has never carried `DOCKERHUB_USERNAME` or
-`DOCKERHUB_TOKEN`, and pulling `python:3.12-slim` needs no credentials.
+`DOCKERHUB_TOKEN`, and pulling `python:3.14-slim` needs no credentials.
 
 `SonarQube` is the `sonarqube.yml` job. It runs SonarQube Cloud's analysis
 on every pull request and every push to `main` and fails when the quality
@@ -73,11 +73,12 @@ pushes the branch here instead. It replaced CodeQL, which only ever analyzed
 the Python here; see [SECURITY.md](SECURITY.md).
 
 Before scanning, the job runs `make coverage`, which holds the Python at 100%
-of lines and branches and `rotate-logs.sh` at 100% of lines, and hands both
-reports to SonarQube Cloud. The Python goes through coverage.py and the shell
-through kcov, each in a podman container that sees the source only as a tar
-stream on its standard input. SonarQube has no importer for shell coverage,
-so `scripts/kcov_to_sonar.py` rewrites kcov's report into SonarQube's generic
+of lines and branches and every shell script the Makefile finds (today
+`rotate-logs.sh`) at 100% of lines, and hands both reports to SonarQube
+Cloud. The Python goes through coverage.py and the shell through kcov, each
+in a podman container that sees the source only as a tar stream on its
+standard input. SonarQube has no importer for shell coverage, so
+`scripts/kcov_to_sonar.py` rewrites kcov's report into SonarQube's generic
 coverage format. The job fails below 100% even though SonarQube's own gate
 only asks for 80% of new code, which the Free plan cannot raise.
 
@@ -187,7 +188,7 @@ requirements files are pin surfaces and a pip bump merges unattended like
 any other, the same today under Renovate's `pip_requirements` manager as it
 did under Dependabot's `pip` ecosystem before it. See
 the shared check's own documentation for the full reasoning; it
-is not restated here. The Dockerfile's `FROM python:3.12-slim` pin stays
+is not restated here. The Dockerfile's `FROM python:3.14-slim` pin stays
 unmanaged (see `.github/renovate.json5`'s comment on `extends:`), so no bot
 pull request ever touches it in the first place.
 

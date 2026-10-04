@@ -12,7 +12,7 @@
   // default, so no custom manager configuration is needed beyond
   // enabledManagers below.
   //
-  // The root Dockerfile (`FROM python:3.12-slim`) stays deliberately
+  // The root Dockerfile (`FROM python:3.14-slim`) stays deliberately
   // unmanaged. Unlike rsync-crypt's ALPINE_VERSION, there is no annotated
   // pin or custom regex manager anchoring this one, and it is this demo's
   // fixture for checklist-dev-docker's hadolint-docker hook rather than a
@@ -196,7 +196,7 @@
     // The shared L2 image, pinned by digest in
     // .devcontainer/l2/Dockerfile. matchFileNames is what keeps the dockerfile
     // manager to that one file, which is what leaves the root Dockerfile
-    // (`FROM python:3.12-slim`, the hadolint fixture) unwatched; see the
+    // (`FROM python:3.14-slim`, the hadolint fixture) unwatched; see the
     // comment on extends: at the top of this file.
     //
     // Merged unattended. A digest update matches none of the automerge
@@ -233,7 +233,7 @@
     // The root Dockerfile stays unmanaged, and this is what enforces it.
     // Enabling the dockerfile manager above makes Renovate extract every
     // Dockerfile in the repository, this one included: confirmed with a
-    // dry-run=extract, which read `FROM python:3.12-slim` and would have
+    // dry-run=extract, which read `FROM python:3.14-slim` and would have
     // proposed a newer tag for the hadolint fixture. matchFileNames on the
     // rule above only scopes grouping and automerge policy, it does not stop
     // extraction, so the exclusion needs saying outright here.
@@ -266,7 +266,7 @@
     // The github-actions manager extracts more than uses: pins by default:
     // confirmed live with a dry-run=extract against this repository, it also
     // proposes updates for pull-request.yml's runs-on: ubuntu-24.04
-    // (depType github-runner) and the python-version: "3.12" passed to
+    // (depType github-runner) and the python-version: "3.14" passed to
     // actions/setup-python's with: (depType uses-with). Dependabot's
     // github-actions ecosystem never watched either; it bumps uses: pins
     // only. Disabled here so this migration hands Renovate exactly the
@@ -291,7 +291,7 @@
       addLabels: ["python"],
     },
     // The two images `make coverage` runs in the Makefile move by digest
-    // only. A tag change is not a pin bump: python 3.12 is the interpreter
+    // only. A tag change is not a pin bump: python 3.14 is the interpreter
     // the tests and SonarQube's python version setting assume, and kcov
     // publishes nothing but `latest`.
     {

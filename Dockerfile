@@ -1,6 +1,6 @@
 # Runs rotate-logs.sh and check_disk_usage.py as a sidecar container,
 # mounted against the log directory of whatever it is rotating logs for.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 
