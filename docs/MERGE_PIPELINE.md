@@ -57,7 +57,7 @@ hadolint on every pull request, this job only additionally proves it
 actually builds, and nothing in this pipeline needs that proof to merge
 anything. Unlike rsync-crypt's `Docker Build`, it does not log in to Docker
 Hub: this repository has never carried `DOCKERHUB_USERNAME` or
-`DOCKERHUB_TOKEN`, and pulling `python:3.12-slim` needs no credentials.
+`DOCKERHUB_TOKEN`, and pulling `python:3.14-slim` needs no credentials.
 
 `SonarQube` is the `sonarqube.yml` job. It runs SonarQube Cloud's analysis
 on every pull request and every push to `main` and fails when the quality
@@ -187,7 +187,7 @@ requirements files are pin surfaces and a pip bump merges unattended like
 any other, the same today under Renovate's `pip_requirements` manager as it
 did under Dependabot's `pip` ecosystem before it. See
 the shared check's own documentation for the full reasoning; it
-is not restated here. The Dockerfile's `FROM python:3.12-slim` pin stays
+is not restated here. The Dockerfile's `FROM python:3.14-slim` pin stays
 unmanaged (see `.github/renovate.json5`'s comment on `extends:`), so no bot
 pull request ever touches it in the first place.
 
