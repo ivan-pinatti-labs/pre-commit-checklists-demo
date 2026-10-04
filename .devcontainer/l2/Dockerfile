@@ -6,9 +6,8 @@
 #
 # It starts from the shared L2 image, pinned by digest, which already carries
 # pre-commit, Python, Node, Go and the linters this repository's hooks use.
-# Anything more its hooks need goes below; the test suite's Python
-# requirements are installed at test time instead (make test), so a pin bump
-# in requirements.txt takes effect without rebuilding this image. Prefer a distribution package, then a vendor's own signed apt
+# Anything more its hooks need goes below; the test suite runs in its own
+# pinned Python image instead (make test), not in this one. Prefer a distribution package, then a vendor's own signed apt
 # repository (the base image carries the keys for GitHub, NodeSource and
 # HashiCorp, enabled by a source line here), then the tool's official
 # container image. Nothing pins a package version: the digest fixes what this

@@ -32,6 +32,11 @@ ones. You'll also need Docker on `PATH` for the Dockerfile checklist.
 from the library; see [`.pre-commit-config.yaml`](../.pre-commit-config.yaml)
 for exactly which hook ids and at which git stage.
 
+`make test` runs the Python tests in a podman container, on the pinned
+Python image the Makefile names, with the requirements from the hash locked
+`tests/requirements.txt`. It needs only podman on `PATH`; no virtual
+environment and no Python on the host.
+
 `make coverage` runs the Python tests under coverage.py and the shell tests
 under kcov, each in a podman container, and fails unless both reach 100%: the
 Python by lines and branches, the shell by lines. It needs podman on `PATH`.

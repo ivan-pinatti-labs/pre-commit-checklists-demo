@@ -11,15 +11,6 @@
 # checkmake's minphony rule also wants `all` declared phony; see checkmake.ini.
 all: help
 
-# The test suite, with its pinned requirements, in a virtual environment kept
-# in L2's own per repository home, where it survives between runs and pip
-# keeps it in step with requirements.txt and tests/requirements.txt. `l2
-# --net` lets pip reach PyPI through the egress proxy; outside a workbench
-# there is no l2, and the same commands run as they are.
-L2_NET := $(if $(shell command -v l2 2>/dev/null),l2 --net --,)
-test:
-	@$(L2_NET) bash -c 'set -e; v="$$HOME/.cache/tests-venv"; python3 -m venv "$$v"; "$$v/bin/pip" install --quiet --disable-pip-version-check --require-hashes --only-binary=:all: -r tests/requirements.txt; "$$v/bin/python" -m pytest tests'
-
 # The workbench targets (make claude, make codex, make unlock and the rest)
 # come from a devcontainer-airlock clone, by default the one next to this
 # repository's main clone, so every worktree finds the same one. See
@@ -42,7 +33,7 @@ help:
 		'' \
 		'Targets:' \
 		'  help                        Show this message.' \
-		'  test                        Run the test suite, in L2 in a workbench.' \
+		'  test                        Run the test suite in the pinned Python image.' \
 		'  coverage                    Python and shell coverage in containers, 100% or fail.' \
 		'  print-shell-scripts         List the shell scripts coverage measures.' \
 		''
@@ -104,6 +95,21 @@ _sources := git ls-files -z --cached --others --exclude-standard --deduplicate \
 	tar --create --owner=0 --group=0 --numeric-owner --null --files-from="$$out/list" --file="$$out/src.tar" || exit 1
 _unpack := set -e; mkdir /tmp/w; tar -x --no-same-owner -C /tmp/w; cd /tmp/w
 _locked := --cap-drop=ALL --security-opt no-new-privileges
+_pip_install := pip install --quiet --disable-pip-version-check --root-user-action=ignore \
+	--require-hashes --only-binary=:all: -r tests/requirements.txt
+
+# The test suite, in the same pinned Python image `make coverage` uses, so
+# the tests run on one interpreter everywhere and never on the host's Python.
+# The container is locked down the same way: the source goes in as the tar
+# stream above, nothing is mounted, every capability is dropped. It needs the
+# network for its pip install from the hash locked tests/requirements.txt.
+# In a devcontainer-airlock workbench run this as `l2 --engine --net -- make
+# test`.
+test:
+	@set -u; out="$$(mktemp -d)"; trap 'rm -rf "$$out"' EXIT; \
+	$(_sources); \
+	$(PODMAN) run <"$$out/src.tar" --rm --interactive $(_locked) \
+		"$(PYTHON_IMAGE)" sh -c '$(_unpack); $(_pip_install); python -m pytest tests'
 
 print-shell-scripts:
 	@printf '%s\n' $(SHELL_SCRIPTS)
@@ -114,8 +120,7 @@ coverage:
 	mkdir "$$out/python" "$$out/shell"; py=0; sh=0; \
 	$(PODMAN) run <"$$out/src.tar" --rm --interactive $(_locked) \
 		-v "$$out/python:/out:rw,Z" "$(PYTHON_IMAGE)" sh -c '$(_unpack); \
-			pip install --quiet --disable-pip-version-check --root-user-action=ignore \
-				--require-hashes --only-binary=:all: -r tests/requirements.txt; \
+			$(_pip_install); \
 			coverage run -m pytest tests -q; \
 			coverage xml -q --fail-under=0 -o /out/coverage.xml; \
 			coverage report' || py=$$?; \
