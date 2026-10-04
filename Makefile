@@ -89,7 +89,7 @@ KCOV_IMAGE ?= docker.io/kcov/kcov:latest@sha256:481289ae32e55e5b733019515acd1094
 # tests/test_shell_discovery.py checks this rule and what it finds.
 SHELL_EXCLUDE :=
 SHELL_EXTRA :=
-SHELL_SCRIPTS := $(sort $(filter-out $(SHELL_EXCLUDE),$(shell git ls-files -z --cached --others --exclude-standard | xargs -0 awk 'FNR == 1 { if (FILENAME ~ /\.(sh|bash)$$/ || $$0 ~ /^#![[:space:]]*([^[:space:]]*\/)?(env[[:space:]]+(-[^[:space:]]+[[:space:]]+)*)?(ba|da)?sh([[:space:]]|$$)/) print FILENAME; nextfile }' 2>/dev/null | grep -v '^tests/')) $(SHELL_EXTRA))
+SHELL_SCRIPTS := $(sort $(filter-out $(SHELL_EXCLUDE),$(shell git ls-files -z --cached --others --exclude-standard | xargs -0 sh -c 'for f do if [ -f "$$f" ]; then printf "%s\0" "$$f"; fi; done' sh | xargs -0 awk 'FNR == 1 { if (FILENAME ~ /\.(sh|bash)$$/ || $$0 ~ /^#![[:space:]]*([^[:space:]]*\/)?(env[[:space:]]+(-[^[:space:]]+[[:space:]]+)*)?(ba|da)?sh([[:space:]]|$$)/) print FILENAME; nextfile }' 2>/dev/null | grep -v '^tests/')) $(SHELL_EXTRA))
 _comma := ,
 _empty :=
 _space := $(_empty) $(_empty)
