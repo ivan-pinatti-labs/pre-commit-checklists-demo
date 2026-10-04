@@ -5,8 +5,8 @@
 # 100%, lines and branches both. SonarQube Cloud's Free plan quality gate is
 # fixed at 80% on new code and cannot be raised, so this is what holds the
 # higher bar. Branches too, so every `if` has been seen going both ways, not
-# only reached. The shell script is held to the same 100% of its lines by
-# kcov, see scripts/kcov_to_sonar.py.
+# only reached. Every shell script the Makefile finds is held to the same
+# 100% of its lines by kcov, see scripts/kcov_to_sonar.py.
 [run]
 # Paths in coverage.xml relative to the repository root, which is what
 # SonarQube Cloud resolves them against; the tests run in a container whose

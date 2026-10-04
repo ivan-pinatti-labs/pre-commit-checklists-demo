@@ -37,7 +37,11 @@ under kcov, each in a podman container, and fails unless both reach 100%: the
 Python by lines and branches, the shell by lines. It needs podman on `PATH`.
 It also runs as a pre-push hook, so run `pre-commit install` again in an
 existing clone to pick up the pre-push stage. A new script ships with tests
-that reach every line of it.
+that reach every line of it. The shell scripts measured are not listed by
+hand: the Makefile finds every `.sh` or `.bash` file, and every file whose
+shebang runs `sh`, `bash` or `dash`, outside `tests/`, so a new one is held
+to 100% as soon as it exists. `make print-shell-scripts` shows the set, and
+`SHELL_EXCLUDE` in the Makefile takes a vendored script out of it.
 
 ## Updating the Python dependencies
 
