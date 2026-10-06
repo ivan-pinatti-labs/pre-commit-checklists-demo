@@ -42,3 +42,111 @@ reviews:
       enabled: false
     markdownlint:
       enabled: false
+
+  # How hard to look. assertive raises more than chill does; this
+  # repository is the example people copy when they adopt the library, so a
+  # wrong pattern here spreads further than an extra comment costs.
+  profile: assertive
+
+  # Review guidance. The first two entries are the organization's
+  # public-repository rules, kept the same in every ivan-pinatti-labs
+  # repository; the rest are specific to pre-commit-checklists-demo (see
+  # AGENTS.md, "What this repository is"). Pre-commit already runs the
+  # linters, so these ask for judgment the hooks cannot make.
+  path_instructions:
+    - path: "**"
+      instructions: |
+        This repository is public. Flag, as a blocking issue, anything in the
+        diff that should not be published:
+        - secrets, tokens, keys, passwords, session cookies, connection
+          strings, or anything that looks like one, even in tests or docs;
+        - personal data: names other than the maintainer's public handle,
+          email addresses other than a users.noreply.github.com one, phone
+          numbers, physical addresses;
+        - machine specific details: absolute home paths (/home/<user>,
+          /Users/<user>), host names, LAN or private IP addresses, internal
+          domains, cloud account IDs, ARNs, AWS profile names, cluster
+          contexts, and details of anyone's own deployment;
+        - AI attribution in any file, commit message or the pull request
+          text: a Co-Authored-By trailer naming an AI agent, a "Generated
+          with" line, an agent session link, or any other line that names
+          or links the agent that wrote the change.
+        Also check that every behavior change comes with tests that would
+        fail without it, and that the docs describe the new behavior. The
+        organization's rule is 100% test coverage of the code it ships:
+        flag, as a blocking issue, any new or changed line or branch of code
+        (not docs or configuration) that no test exercises, and name the
+        test that would cover it. Do not comment on formatting the
+        pre-commit hooks already enforce.
+    - path: "**/*.md"
+      instructions: |
+        Prose does not use a hyphen, em dash or en dash as punctuation; use
+        commas, parentheses or separate sentences (hyphens inside compound
+        words, code, paths and flags are fine). Point out claims the code in
+        this pull request does not back up.
+    - path: "{README.md,.pre-commit-config.yaml}"
+      instructions: |
+        README.md's "What's here" table maps every sample file to the hook
+        ids it exercises. Flag a change that adds, removes or renames a file
+        or a hook id in .pre-commit-config.yaml without updating that table
+        to match, and a hook id wired up with no genuine file for it to
+        check: a hook id with nothing to check stays out of the config and
+        README.md says why.
+    - path: ".pre-commit-config.yaml"
+      instructions: |
+        This file must stay representative of how a real consumer adopts the
+        library: the library entry pins a released `rev:` tag (never a
+        branch, a commit or a local path) and lists hook ids the way the
+        library's templates/pre-commit-config/recommended.yaml does. Flag
+        anything a real consumer would not do, other than the one local
+        coverage hook the comments already explain.
+    - path: "{.editorconfig,.yamllint.yml,.markdownlint.yaml,.cspell.json}"
+      instructions: |
+        These tool configs were copied from the library's templates/
+        directory. When one changes, ask whether the library's template
+        needs the same change, and flag a change that would only make sense
+        in this repository without a comment saying why it differs.
+
+  # Pull request checks shown in the walkthrough. Warnings, not errors: the
+  # merge pipeline already gates on CodeRabbit's review through Review
+  # Verified (docs/MERGE_PIPELINE.md).
+  pre_merge_checks:
+    title:
+      mode: warning
+      requirements: >-
+        Conventional Commits: type(optional scope): imperative subject,
+        lowercase, no trailing period, at most 72 characters.
+    description:
+      mode: warning
+    custom_checks:
+      - name: Public repository hygiene
+        mode: warning
+        instructions: >-
+          Fail if the diff, commit messages or pull request text add a
+          secret or something that looks like one, an email address other
+          than a users.noreply.github.com one, an absolute home path, a host
+          name, a private IP address, a cloud account ID or ARN, or details
+          of a personal deployment. Pass otherwise.
+      - name: No AI attribution
+        mode: warning
+        instructions: >-
+          Fail if any commit message, the pull request title or description,
+          or any file in the diff contains a Co-Authored-By trailer naming an
+          AI agent, a "Generated with" line, an agent session link, or any
+          other line that names or links the AI agent that made the change.
+          Pass otherwise.
+
+# Tone of review comments and chat.
+tone_instructions: >-
+  Direct and specific: lead with the defect and a concrete fix, in plain
+  words. No praise, no emoji, no hype. Skip style points a linter already
+  reports.
+
+# The repository's own rules, read as coding guidelines for every review.
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - AGENTS.md
+      - docs/CONTRIBUTING.md
+      - docs/MERGE_PIPELINE.md
