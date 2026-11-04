@@ -13,5 +13,5 @@
 # keep it equal to the root requirements.in. coverage measures the suite for
 # SonarQube Cloud (`make coverage`).
 coverage==7.17.0
-pytest==9.1.1
+pytest==9.2.0
 pyyaml==6.0.3
