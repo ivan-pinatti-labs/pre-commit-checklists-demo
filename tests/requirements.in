@@ -12,6 +12,6 @@
 # check_disk_usage, pinned here too so the suite installs from this one lock;
 # keep it equal to the root requirements.in. coverage measures the suite for
 # SonarQube Cloud (`make coverage`).
-coverage==7.17.0
+coverage==7.17.1
 pytest==9.2.0
 pyyaml==6.0.3
